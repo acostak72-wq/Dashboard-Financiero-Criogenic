@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exergia Fria Pro v5 - STO + Monte Carlo + Carbon</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#060810;--surf:#0d1117;--s2:#141923;--s3:#1a2332;--bdr:rgba(99,179,237,0.12);--bdr2:rgba(99,179,237,0.28);--ac:#63b3ed;--gr:#4ade80;--am:#f59e0b;--rd:#f87171;--pu:#a78bfa;--cy:#22d3ee;--tx:#e2e8f0;--mu:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(99,179,237,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(99,179,237,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+.shell{display:grid;grid-template-columns:310px 1fr;min-height:100vh;position:relative;z-index:1;}
+/* SIDEBAR */
+.sb{background:var(--surf);border-right:1px solid var(--bdr);padding:24px 18px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.sb::-webkit-scrollbar{width:3px;}.sb::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+.brand{margin-bottom:22px;}.brand-tag{font-family:'Space Mono',monospace;font-size:9px;color:var(--ac);letter-spacing:3px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.brand h1{font-size:17px;font-weight:800;color:white;line-height:1.2;}.brand h1 span{color:var(--ac);}
+.sec{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);padding:14px 0 9px;border-top:1px solid var(--bdr);margin-top:4px;}
+.pg{margin-bottom:14px;}
+.pl{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.pn{font-size:11px;font-weight:600;color:var(--mu);}
+.pv{font-family:'Space Mono',monospace;font-size:11px;color:var(--ac);font-weight:700;}
+.pu{font-family:'Space Mono',monospace;font-size:9px;color:var(--mu);margin-left:2px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--bdr);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--ac);border-radius:50%;cursor:pointer;box-shadow:0 0 7px rgba(99,179,237,.5);transition:box-shadow .2s,transform .2s;}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 14px rgba(99,179,237,.9);transform:scale(1.2);}
+input[type=number],select{width:100%;padding:7px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;color:var(--ac);font-family:'Space Mono',monospace;font-size:11px;outline:none;transition:border-color .2s;appearance:none;}
+input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2px rgba(99,179,237,.1);}
+/* MAIN */
+.main{padding:32px 40px;display:flex;flex-direction:column;gap:22px;}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;}
+.ph h2{font-size:24px;font-weight:800;color:white;line-height:1;}
+.ph .sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--mu);margin-top:4px;letter-spacing:1px;}
+.live{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:9px;color:var(--gr);}
+.live::before{content:'';width:6px;height:6px;background:var(--gr);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+/* TABS */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--bdr);}
+.tab{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;cursor:pointer;color:var(--mu);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px;white-space:nowrap;}
+.tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+.tab:hover:not(.active){color:var(--tx);}
+.tpane{display:none;flex-direction:column;gap:20px;}.tpane.active{display:flex;}
+/* KPI grids */
+.k4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.k3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.k6{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.kc{background:var(--surf);border:1px solid var(--bdr);border-radius:9px;padding:15px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s;}
+.kc:hover{border-color:var(--bdr2);transform:translateY(-2px);}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kc:nth-child(1)::before{background:var(--ac);}
+.kc:nth-child(2)::before{background:var(--gr);}
+.kc:nth-child(3)::before{background:var(--am);}
+.kc:nth-child(4)::before{background:var(--rd);}
+.kc.tok::before{background:var(--pu)!important;}
+.kc.cy::before{background:var(--cy)!important;}
+.ki{font-size:15px;margin-bottom:8px;display:block;}
+.kl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px;}
+.kv{font-size:20px;font-weight:800;display:block;line-height:1;}
+.kc:nth-child(1) .kv{color:var(--ac);}
+.kc:nth-child(2) .kv{color:var(--gr);}
+.kc:nth-child(3) .kv{color:var(--am);}
+.kc:nth-child(4) .kv{color:var(--rd);}
+.kc.tok .kv{color:var(--pu)!important;}
+.kc.cy .kv{color:var(--cy)!important;}
+.ks{font-family:'Space Mono',monospace;font-size:9px;color:var(--mu);margin-top:4px;display:block;}
+/* Cards */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:9px;padding:20px;}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.ct{font-size:13px;font-weight:700;color:white;}
+.badge{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--ac);background:rgba(99,179,237,.08);border:1px solid rgba(99,179,237,.2);padding:3px 8px;border-radius:20px;}
+.badge.pu{color:var(--pu);background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);}
+.badge.gr{color:var(--gr);background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.2);}
+.badge.am{color:var(--am);background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);}
+.cbox{position:relative;height:280px;}
+/* Cols */
+.c2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.c3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+/* Metric rows */
+.mr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.mr:last-child{border-bottom:none;}
+.mn{font-size:11px;color:var(--mu);}
+.mv{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx);font-weight:700;}
+.mv.gr{color:var(--gr)!important;}.mv.rd{color:var(--rd)!important;}.mv.am{color:var(--am)!important;}.mv.pu{color:var(--pu)!important;}.mv.ac{color:var(--ac)!important;}
+.bw{width:65px;height:2px;background:var(--bdr);border-radius:1px;overflow:hidden;margin-left:8px;}
+.bb{height:100%;border-radius:1px;transition:width .5s cubic-bezier(.34,1.56,.64,1);}
+/* Distribution bar */
+.dbar{display:flex;height:18px;border-radius:5px;overflow:hidden;gap:2px;margin:10px 0;}
+.dseg{transition:flex .5s ease;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;overflow:hidden;white-space:nowrap;}
+.leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--mu);}
+.ld{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+/* Scenario cards */
+.scen{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sc{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:14px;text-align:center;}
+.sc.pess{border-color:rgba(248,113,113,.3);}.sc.base{border-color:rgba(99,179,237,.3);}.sc.opt{border-color:rgba(74,222,128,.3);}
+.sc-name{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:block;}
+.sc.pess .sc-name{color:var(--rd);}.sc.base .sc-name{color:var(--ac);}.sc.opt .sc-name{color:var(--gr);}
+.sm{margin:5px 0;}.sm-l{font-size:9px;color:var(--mu);display:block;}.sm-v{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;display:block;}
+.sc.pess .sm-v{color:var(--rd);}.sc.base .sm-v{color:var(--ac);}.sc.opt .sm-v{color:var(--gr);}
+/* Tech comparator */
+.tech-table{width:100%;border-collapse:collapse;}
+.tech-table th{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:7px 10px;text-align:right;border-bottom:1px solid var(--bdr);}
+.tech-table th:first-child{text-align:left;}
+.tech-table td{font-family:'Space Mono',monospace;font-size:10px;padding:8px 10px;text-align:right;border-bottom:1px solid rgba(99,179,237,.05);}
+.tech-table td:first-child{text-align:left;color:var(--tx);font-weight:700;}
+.tech-table tr.highlight td{background:rgba(99,179,237,.05);}
+/* Heatmap */
+#hmap{display:grid;gap:3px;margin-top:8px;}
+/* MC */
+.mc-run-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.3);border-radius:8px;padding:12px 24px;font-family:'Space Mono',monospace;font-size:11px;color:var(--ac);cursor:pointer;transition:all .2s;letter-spacing:1px;text-transform:uppercase;width:100%;}
+.mc-run-btn:hover{background:rgba(99,179,237,.2);border-color:var(--ac);}
+.mc-run-btn.running{color:var(--am);border-color:var(--am);animation:pulse 1s infinite;}
+.mc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+.mc-stat{background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:12px;text-align:center;}
+.mc-stat-l{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:4px;}
+.mc-stat-v{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--ac);display:block;}
+/* Export */
+.exp-card{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:12px;}
+.exp-btn{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:8px;border:1px solid;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:1px;width:100%;margin-top:10px;background:transparent;}
+.exp-btn.pdf{color:var(--rd);border-color:rgba(248,113,113,.4);}.exp-btn.pdf:hover{background:rgba(248,113,113,.1);}
+.exp-btn.xls{color:var(--gr);border-color:rgba(74,222,128,.4);}.exp-btn.xls:hover{background:rgba(74,222,128,.1);}
+.sig-box{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:12px;font-family:'Space Mono',monospace;font-size:9px;color:var(--mu);margin-top:10px;word-break:break-all;line-height:1.6;}
+.sig-hash{color:var(--ac);font-size:11px;font-weight:700;display:block;margin-top:4px;}
+/* Info pill */
+.info{display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:7px 12px;font-family:'Space Mono',monospace;font-size:9px;color:var(--am);margin-top:8px;}
+/* Carbon arc */
+.carb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@keyframes flash{0%{opacity:.3;transform:scale(.95);}100%{opacity:1;transform:scale(1);}}
+.flash{animation:flash .35s ease forwards;}
+</style>
+</head>
+<body>
+<div class="shell">
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="brand">
+    <span class="brand-tag">// PIVTAN v5.0</span>
+    <h1>Exergia <span>Fria</span><br>Pro &middot; STO + MC</h1>
+  </div>
+
+  <span class="sec">Parametros Tecnicos</span>
+  <div class="pg"><div class="pl"><span class="pn">Flujo GNL</span><span><span class="pv" id="lf">100</span><span class="pu">ton/h</span></span></div><input type="range" id="flow" min="20" max="500" value="100"></div>
+  <div class="pg"><div class="pl"><span class="pn">T entrada GNL</span><span><span class="pv" id="lt">-161</span><span class="pu">&deg;C</span></span></div><input type="range" id="t_lng" min="-165" max="-140" value="-161"></div>
+  <div class="pg"><div class="pl"><span class="pn">T ambiente</span><span><span class="pv" id="la">25</span><span class="pu">&deg;C</span></span></div><input type="range" id="t_amb" min="15" max="45" value="25"></div>
+  <div class="pg"><div class="pl"><span class="pn">Tipo de ciclo</span></div><select id="cycle"><option value="rankine" selected>Rankine (propano)</option><option value="direct">Expansion directa</option><option value="combined">Ciclo combinado</option><option value="brayton">Brayton inverso</option></select></div>
+  <div class="pg"><div class="pl"><span class="pn">Eficiencia ciclo</span><span><span class="pv" id="le">30</span><span class="pu">%</span></span></div><input type="range" id="eff" min="10" max="52" value="30"></div>
+  <div class="pg"><div class="pl"><span class="pn">Degradacion anual</span><span><span class="pv" id="ldg">0.5</span><span class="pu">%</span></span></div><input type="range" id="deg" min="0" max="2" step="0.1" value="0.5"></div>
+
+  <span class="sec">Mercado &amp; Carbon</span>
+  <div class="pg"><div class="pl"><span class="pn">Precio electricidad</span><span><span class="pv" id="lpr">80</span><span class="pu">USD/MWh</span></span></div><input type="range" id="price" min="40" max="200" value="80"></div>
+  <div class="pg"><div class="pl"><span class="pn">Escal. precio elec.</span><span><span class="pv" id="lpe">2</span><span class="pu">%/a</span></span></div><input type="range" id="price_esc" min="0" max="8" step="0.5" value="2"></div>
+  <div class="pg"><div class="pl"><span class="pn">Valor. frio</span><span><span class="pv" id="lco">15</span><span class="pu">USD/MWh-t</span></span></div><input type="range" id="cold" min="0" max="50" value="15"></div>
+  <div class="pg"><div class="pl"><span class="pn">Precio CO2</span><span><span class="pv" id="lcp">12</span><span class="pu">USD/tCO2</span></span></div><input type="range" id="co2p" min="0" max="80" value="12"></div>
+  <div class="pg"><div class="pl"><span class="pn">Intensidad red ref.</span><span><span class="pv" id="lci">0.45</span><span class="pu">tCO2/MWh</span></span></div><input type="range" id="grid_int" min="0.1" max="0.8" step="0.05" value="0.45"></div>
+  <div class="pg"><div class="pl"><span class="pn">Inflacion OPEX</span><span><span class="pv" id="linf">3</span><span class="pu">%/a</span></span></div><input type="range" id="infl" min="0" max="8" step="0.5" value="3"></div>
+
+  <span class="sec">Estructura de Capital</span>
+  <div class="pg"><div class="pl"><span class="pn">CAPEX unitario</span><span class="pu">USD/kW</span></div><input type="number" id="capex_kw" value="4000"></div>
+  <div class="pg"><div class="pl"><span class="pn">Deuda / CAPEX</span><span><span class="pv" id="ldr">60</span><span class="pu">%</span></span></div><input type="range" id="debt_r" min="0" max="85" value="60"></div>
+  <div class="pg"><div class="pl"><span class="pn">Costo deuda Kd</span><span class="pu">%</span></div><input type="number" id="kd" value="6" step="0.5"></div>
+  <div class="pg"><div class="pl"><span class="pn">Costo equity Ke</span><span class="pu">%</span></div><input type="number" id="ke" value="12" step="0.5"></div>
+  <div class="pg"><div class="pl"><span class="pn">Tasa impositiva</span><span class="pu">%</span></div><input type="number" id="tax" value="33" step="1"></div>
+  <div class="pg"><div class="pl"><span class="pn">Anos depreciacion</span><span class="pu">a</span></div><input type="number" id="dep_y" value="20" step="1" min="5" max="30"></div>
+  <div class="pg"><div class="pl"><span class="pn">Plazo deuda</span><span class="pu">a</span></div><input type="number" id="debt_t" value="15" step="1" min="5" max="20"></div>
+
+  <span class="sec">Tokenizacion STO</span>
+  <div class="pg"><div class="pl"><span class="pn">Token / Equity</span><span><span class="pv" id="ltk">40</span><span class="pu">%</span></span></div><input type="range" id="tok_r" min="5" max="80" value="40"></div>
+  <div class="pg"><div class="pl"><span class="pn">N tokens emitidos</span><span class="pu">M</span></div><input type="number" id="tok_s" value="10" step="1" min="1"></div>
+  <div class="pg"><div class="pl"><span class="pn">% Revenue tokens</span><span><span class="pv" id="lrt">20</span><span class="pu">%</span></span></div><input type="range" id="rev_t" min="0" max="50" value="20"></div>
+  <div class="pg"><div class="pl"><span class="pn">Descuento STO</span><span><span class="pv" id="lsd">15</span><span class="pu">%</span></span></div><input type="range" id="sto_d" min="0" max="40" value="15"></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="ph">
+    <div><h2>Dashboard Financiero Criogenico</h2><p class="sub">PIVTAN v5 &mdash; TERMODINAMICA REAL + NOL + INFLACION + MONTE CARLO + CARBON + EXPORT</p></div>
+    <div class="live">TIEMPO REAL</div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="ST('ing')">Ingenieria</div>
+    <div class="tab" onclick="ST('fin')">Financiero</div>
+    <div class="tab" onclick="ST('tok')">Tokenizacion</div>
+    <div class="tab" onclick="ST('mc')">Monte Carlo</div>
+    <div class="tab" onclick="ST('carb')">Carbono &amp; Comp.</div>
+    <div class="tab" onclick="ST('exp')">Exportar</div>
+  </div>
+
+  <!-- TAB: INGENIERIA -->
+  <div class="tpane active" id="t-ing">
+    <div class="k4">
+      <div class="kc"><span class="ki">&#9651;</span><span class="kl">Exergia especifica GNL</span><span class="kv" id="r-ex">--</span><span class="ks">kJ/kg fisico real</span></div>
+      <div class="kc"><span class="ki">&#9889;</span><span class="kl">Potencia neta</span><span class="kv" id="r-mw">--</span><span class="ks">MW electrico</span></div>
+      <div class="kc"><span class="ki">&#10052;</span><span class="kl">Potencia termica frio</span><span class="kv" id="r-pf">--</span><span class="ks">MW-t disponibles</span></div>
+      <div class="kc"><span class="ki">&#127755;</span><span class="kl">Efic. Carnot relativa</span><span class="kv" id="r-ca">--</span><span class="ks">% del ideal termod.</span></div>
+    </div>
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">Exergia vs Temperatura GNL</span><span class="badge">CURVA REAL</span></div>
+        <div class="cbox"><canvas id="exChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Comparacion de Ciclos (mismas condiciones)</span><span class="badge">4 CICLOS</span></div>
+        <div class="cbox"><canvas id="cycChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Balance Termico del Proyecto</span><span class="badge am">SUPUESTOS EXPLICITOS</span></div>
+      <div class="c3">
+        <div><div class="mr"><span class="mn">T entrada GNL</span><span class="mv" id="in-tlng">--</span></div><div class="mr"><span class="mn">T ambiente</span><span class="mv" id="in-tamb">--</span></div><div class="mr"><span class="mn">Tipo de ciclo</span><span class="mv ac" id="in-cyc">--</span></div><div class="mr"><span class="mn">Eficiencia max. ciclo</span><span class="mv" id="in-emax">--</span></div></div>
+        <div><div class="mr"><span class="mn">T ebullicion CH4 (1 atm)</span><span class="mv">111.65 K</span></div><div class="mr"><span class="mn">Calor latente CH4</span><span class="mv">511 kJ/kg</span></div><div class="mr"><span class="mn">Cp liquido CH4</span><span class="mv">3.45 kJ/kg.K</span></div><div class="mr"><span class="mn">Cp gas CH4</span><span class="mv">2.22 kJ/kg.K</span></div></div>
+        <div><div class="mr"><span class="mn">Flujo masico</span><span class="mv" id="in-ms">--</span></div><div class="mr"><span class="mn">Exergia calculada</span><span class="mv" id="in-ex">--</span></div><div class="mr"><span class="mn">Horas/ano operacion</span><span class="mv">8,000 h/a</span></div><div class="mr"><span class="mn">Degradacion aplicada</span><span class="mv" id="in-deg">--</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: FINANCIERO -->
+  <div class="tpane" id="t-fin">
+    <div class="k4">
+      <div class="kc"><span class="ki">&#128200;</span><span class="kl">TIR Equity (N-R real)</span><span class="kv" id="r-irr">--</span><span class="ks">convergencia &lt; 1e-9</span></div>
+      <div class="kc"><span class="ki">&#128176;</span><span class="kl">VAN Equity</span><span class="kv" id="r-npv">--</span><span class="ks">descontado a Ke</span></div>
+      <div class="kc"><span class="ki">&#128337;</span><span class="kl">Payback equity</span><span class="kv" id="r-pb">--</span><span class="ks">recuperacion real</span></div>
+      <div class="kc"><span class="ki">&#9889;</span><span class="kl">LCOE proyecto</span><span class="kv" id="r-lcoe">--</span><span class="ks">USD/MWh vida util</span></div>
+    </div>
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">FCL Equity Acumulado (con inflacion + degradacion)</span><span class="badge">20 ANOS</span></div>
+        <div class="cbox"><canvas id="fclChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Composicion de Ingresos (ano a ano)</span><span class="badge">ESCALACION REAL</span></div>
+        <div class="cbox"><canvas id="revChart"></canvas></div>
+      </div>
+    </div>
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">Desglose Ingresos</span></div>
+        <div class="mr"><span class="mn">Ingresos electricos ano 1</span><div style="display:flex;align-items:center"><span class="mv" id="br-el">--</span><div class="bw"><div class="bb" id="bb-el" style="background:var(--ac);width:0%"></div></div></div></div>
+        <div class="mr"><span class="mn">Ingresos frio ano 1</span><div style="display:flex;align-items:center"><span class="mv" id="br-co">--</span><div class="bw"><div class="bb" id="bb-co" style="background:var(--gr);width:0%"></div></div></div></div>
+        <div class="mr"><span class="mn">Creditos de carbono ano 1</span><div style="display:flex;align-items:center"><span class="mv gr" id="br-cb">--</span><div class="bw"><div class="bb" id="bb-cb" style="background:var(--cy);width:0%"></div></div></div></div>
+        <div class="mr"><span class="mn">OPEX ano 1</span><div style="display:flex;align-items:center"><span class="mv rd" id="br-op">--</span><div class="bw"><div class="bb" id="bb-op" style="background:var(--rd);width:0%"></div></div></div></div>
+        <div class="mr"><span class="mn">EBITDA ano 1</span><span class="mv gr" id="br-eb">--</span></div>
+        <div class="mr"><span class="mn">FCL equity ano 1</span><span class="mv" id="br-fc">--</span></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Estructura Financiera</span></div>
+        <div class="mr"><span class="mn">CAPEX total</span><span class="mv" id="br-ca">--</span></div>
+        <div class="mr"><span class="mn">Deuda senior</span><span class="mv rd" id="br-de">--</span></div>
+        <div class="mr"><span class="mn">Equity total</span><span class="mv ac" id="br-eq">--</span></div>
+        <div class="mr"><span class="mn">WACC calculado</span><span class="mv am" id="br-wa">--</span></div>
+        <div class="mr"><span class="mn">TIR proyecto (FCFF)</span><span class="mv" id="br-if">--</span></div>
+        <div class="mr"><span class="mn">VAN proyecto (WACC)</span><span class="mv" id="br-nf">--</span></div>
+        <div class="mr"><span class="mn">NOL maximo acumulado</span><span class="mv rd" id="br-nl">--</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: TOKENIZACION -->
+  <div class="tpane" id="t-tok">
+    <div class="k6">
+      <div class="kc tok"><span class="kl">Precio token STO</span><span class="kv" id="tk-pr">--</span><span class="ks">USD / ST-EXF</span></div>
+      <div class="kc tok"><span class="kl">Market cap inicial</span><span class="kv" id="tk-mc">--</span><span class="ks">oferta primaria</span></div>
+      <div class="kc tok"><span class="kl">Yield ano 1</span><span class="kv" id="tk-yi">--</span><span class="ks">dividendo / precio</span></div>
+      <div class="kc tok"><span class="kl">TIR token (N-R)</span><span class="kv" id="tk-ir">--</span><span class="ks">retorno tokenista</span></div>
+      <div class="kc tok"><span class="kl">VAN token</span><span class="kv" id="tk-np">--</span><span class="ks">descontado a Ke</span></div>
+      <div class="kc tok"><span class="kl">Dividendo / token</span><span class="kv" id="tk-dv">--</span><span class="ks">USD ano 1</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Distribucion del Capital</span><span class="badge pu">ESTRUCTURA STO</span></div>
+      <div class="dbar" id="dbar">
+        <div class="dseg" id="ds-de" style="background:var(--rd);flex:60;color:white;">Deuda</div>
+        <div class="dseg" id="ds-tk" style="background:var(--pu);flex:16;color:white;">STO</div>
+        <div class="dseg" id="ds-eq" style="background:var(--ac);flex:24;color:white;">Equity</div>
+      </div>
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:var(--rd)"></div>Deuda (<span id="lg-de">--</span>)</div>
+        <div class="li"><div class="ld" style="background:var(--pu)"></div>Tokens STO (<span id="lg-tk">--</span>)</div>
+        <div class="li"><div class="ld" style="background:var(--ac)"></div>Equity residual (<span id="lg-eq">--</span>)</div>
+      </div>
+    </div>
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">FCL Acumulado por Token</span><span class="badge pu">USD / TOKEN</span></div>
+        <div class="cbox"><canvas id="tkChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Tipos de Token Emitidos</span><span class="badge pu">ARQUITECTURA</span></div>
+        <div style="margin-top:4px">
+          <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:13px;margin-bottom:10px;">
+            <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--pu);text-transform:uppercase;margin-bottom:8px;">Security Token (ST-EXF)</div>
+            <div class="mr"><span class="mn">Tipo</span><span class="mv pu">Revenue + Equity Share</span></div>
+            <div class="mr"><span class="mn">Suministro</span><span class="mv pu" id="tk-su">--</span></div>
+            <div class="mr"><span class="mn">Fraccion equity</span><span class="mv pu" id="tk-fr">--</span></div>
+          </div>
+          <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:13px;">
+            <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--am);text-transform:uppercase;margin-bottom:8px;">Utility Token (COLD-KWH)</div>
+            <div class="mr"><span class="mn">Tipo</span><span class="mv am">Prepago de frio industrial</span></div>
+            <div class="mr"><span class="mn">1 token =</span><span class="mv am">1 MWh-t entregado</span></div>
+            <div class="mr"><span class="mn">Precio referencia</span><span class="mv am" id="tk-cp">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MONTE CARLO -->
+  <div class="tpane" id="t-mc">
+    <div class="card">
+      <div class="ch"><span class="ct">Simulacion de Riesgo Monte Carlo</span><span class="badge am">500 ESCENARIOS</span></div>
+      <div class="info">&#9888; Variables aleatorias: precio electr. (sigma=15%), precio frio (25%), CAPEX (10% sesg. positivo), flujo GNL (8%), eficiencia (5%)</div>
+      <button class="mc-run-btn" id="mc-btn" onclick="runMC()">&#9654; &nbsp; Simular 500 escenarios aleatorios</button>
+      <div class="mc-stats" id="mc-stats" style="display:none">
+        <div class="mc-stat"><span class="mc-stat-l">P10 TIR</span><span class="mc-stat-v" id="mc-p10">--</span></div>
+        <div class="mc-stat"><span class="mc-stat-l">P50 TIR</span><span class="mc-stat-v" id="mc-p50">--</span></div>
+        <div class="mc-stat"><span class="mc-stat-l">P90 TIR</span><span class="mc-stat-v" id="mc-p90">--</span></div>
+        <div class="mc-stat"><span class="mc-stat-l">Prob. VAN &gt; 0</span><span class="mc-stat-v" id="mc-pv">--</span></div>
+      </div>
+    </div>
+    <div class="c2" id="mc-charts" style="display:none">
+      <div class="card">
+        <div class="ch"><span class="ct">Distribucion TIR Equity</span><span class="badge">HISTOGRAMA</span></div>
+        <div class="cbox"><canvas id="mc-hist"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Analisis de Sensibilidad (Tornado)</span><span class="badge am">IMPACTO EN TIR</span></div>
+        <div class="cbox"><canvas id="mc-torn"></canvas></div>
+      </div>
+    </div>
+    <div class="scen">
+      <div class="sc pess"><span class="sc-name">Pesimista</span><div class="sm"><span class="sm-l">TIR Equity</span><span class="sm-v" id="s-p-irr">--</span></div><div class="sm"><span class="sm-l">VAN</span><span class="sm-v" id="s-p-npv">--</span></div><div class="sm"><span class="sm-l">Payback</span><span class="sm-v" id="s-p-pb">--</span></div></div>
+      <div class="sc base"><span class="sc-name">Base</span><div class="sm"><span class="sm-l">TIR Equity</span><span class="sm-v" id="s-b-irr">--</span></div><div class="sm"><span class="sm-l">VAN</span><span class="sm-v" id="s-b-npv">--</span></div><div class="sm"><span class="sm-l">Payback</span><span class="sm-v" id="s-b-pb">--</span></div></div>
+      <div class="sc opt"><span class="sc-name">Optimista</span><div class="sm"><span class="sm-l">TIR Equity</span><span class="sm-v" id="s-o-irr">--</span></div><div class="sm"><span class="sm-l">VAN</span><span class="sm-v" id="s-o-npv">--</span></div><div class="sm"><span class="sm-l">Payback</span><span class="sm-v" id="s-o-pb">--</span></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: CARBONO -->
+  <div class="tpane" id="t-carb">
+    <div class="carb-kpis k3">
+      <div class="kc cy"><span class="kl">CO2 evitado ano 1</span><span class="kv" id="cb-y1">--</span><span class="ks">toneladas CO2 / ano</span></div>
+      <div class="kc cy"><span class="kl">CO2 evitado 20 anos</span><span class="kv" id="cb-t">--</span><span class="ks">tCO2 acumuladas</span></div>
+      <div class="kc cy"><span class="kl">Ingresos carbon 20a</span><span class="kv" id="cb-r">--</span><span class="ks">USD creditos VCS</span></div>
+    </div>
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">Ingresos Carbon Ano a Ano</span><span class="badge" style="color:var(--cy);border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.08);">DEGRADACION + PRECIO</span></div>
+        <div class="cbox"><canvas id="cbChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Heatmap TIR: Precio Elec x Eficiencia</span><span class="badge gr">MATRIZ 5x5</span></div>
+        <div id="hmap"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">Comparador de Tecnologias</span><span class="badge gr">5 ALTERNATIVAS</span></div>
+      <table class="tech-table">
+        <thead><tr><th>Tecnologia</th><th>CAPEX USD/kW</th><th>LCOE USD/MWh</th><th>Factor Cap. %</th><th>Vida util</th><th>CO2 evitado tCO2/MWh</th><th>TIR ref.</th></tr></thead>
+        <tbody id="tech-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: EXPORTAR -->
+  <div class="tpane" id="t-exp">
+    <div class="c2">
+      <div class="card">
+        <div class="ch"><span class="ct">Resumen del Proyecto</span><span class="badge">SNAPSHOT</span></div>
+        <div id="exp-summary"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Exportar Documentos</span></div>
+        <div class="exp-card">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--mu);margin-bottom:6px;">INFORME PDF &mdash; Resumen ejecutivo con firma digital</div>
+          <button class="exp-btn pdf" onclick="exportPDF()">&#128196; &nbsp; Descargar PDF con firma</button>
+        </div>
+        <div class="exp-card">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--mu);margin-bottom:6px;">EXCEL XLSX &mdash; Flujos de caja 20 anos + supuestos</div>
+          <button class="exp-btn xls" onclick="exportXLS()">&#128202; &nbsp; Descargar Excel (20 anos)</button>
+        </div>
+        <div class="sig-box">
+          <span style="color:var(--mu)">Firma digital del escenario:</span>
+          <span class="sig-hash" id="sig-hash">--</span>
+          <span style="color:var(--mu);font-size:8px;" id="sig-ts">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+<script>
+// ================================================================
+// CONSTANTES TERMODINAMICAS CH4 (Metano ~= GNL)
+// ================================================================
+const T_BP  = 111.65;  // K - punto ebullicion a 1 atm
+const H_VAP = 511;     // kJ/kg - calor latente
+const CP_L  = 3.45;    // kJ/(kg.K) - Cp liquido promedio
+const CP_G  = 2.22;    // kJ/(kg.K) - Cp gas promedio
+const YEARS = 20;
+
+// Eficiencia maxima por tipo de ciclo (fraccion de Carnot alcanzable)
+const EFF_MAX = {rankine:0.38, direct:0.42, combined:0.52, brayton:0.44};
+const CYC_NAME = {rankine:'Rankine (propano)', direct:'Expansion directa', combined:'Ciclo combinado', brayton:'Brayton inverso'};
+
+// ================================================================
+// TERMODINAMICA REAL
+// ================================================================
+function calcExergia(T_lng_K, T0_K) {
+  // Exergia fisica del GNL respecto al ambiente
+  // ex = (h_lng - h0) - T0*(s_lng - s0) = T0*ds - dh  (con signos para flujo frio)
+  const T_in = Math.min(T_lng_K, T_BP);  // GNL entra como liquido
+  const dh = CP_L*(T_BP - T_in) + H_VAP + CP_G*(T0_K - T_BP);
+  const ds = CP_L*Math.log(T_BP/T_in) + H_VAP/T_BP + CP_G*Math.log(T0_K/T_BP);
+  return Math.max(T0_K*ds - dh, 0);  // kJ/kg
+}
+
+function carnotEff(T_lng_K, T0_K) {
+  return Math.max(1 - T_lng_K/T0_K, 0);
+}
+
+function realCycleEff(eta_user, cycleType, T_lng_K, T0_K) {
+  const eta_max = EFF_MAX[cycleType] || 0.38;
+  const eta_bounded = Math.min(eta_user/100, eta_max);
+  // Correccion por temperatura real vs referencia
+  const carnot_real = carnotEff(T_lng_K, T0_K);
+  const carnot_ref  = carnotEff(111.65, 298.15);
+  const corr = Math.sqrt(Math.max(carnot_real/carnot_ref, 0.5));
+  return eta_bounded * corr;
+}
+
+// ================================================================
+// UTILIDADES MATEMATICAS
+// ================================================================
+function annuity(pv, r, n) { return r===0 ? pv/n : pv*r/(1-Math.pow(1+r,-n)); }
+
+function irr_nr(cfs) {
+  // Newton-Raphson para TIR, convergencia < 1e-9
+  if (!cfs || cfs.length < 2) return NaN;
+  let r = 0.10;
+  for (let it=0; it<400; it++) {
+    let npv=0, dnpv=0;
+    for (let t=0; t<cfs.length; t++) {
+      const d = Math.pow(1+r, t);
+      npv  += cfs[t]/d;
+      if (Math.abs(dnpv) < 1e15) dnpv -= t*cfs[t]/(d*(1+r));
+    }
+    if (Math.abs(dnpv) < 1e-14) break;
+    const r2 = r - npv/dnpv;
+    if (Math.abs(r2-r) < 1e-9) return r2*100;
+    r = r2;
+    if (r < -0.999 || r > 100) return NaN;
+  }
+  return NaN;
+}
+
+function npv_f(cfs, r) { return cfs.reduce((a,c,t) => a + c/Math.pow(1+r,t), 0); }
+
+function randn() {
+  // Box-Muller
+  let u, v;
+  do { u = Math.random(); } while (u===0);
+  do { v = Math.random(); } while (v===0);
+  return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+}
+
+function pctile(arr, p) {
+  const s = arr.filter(v=>!isNaN(v)).slice().sort((a,b)=>a-b);
+  if (!s.length) return NaN;
+  const i = (p/100)*(s.length-1);
+  const lo=Math.floor(i), hi=Math.ceil(i);
+  return s[lo] + (s[hi]-s[lo])*(i-lo);
+}
+
+// ================================================================
+// MODELO FINANCIERO COMPLETO
+// ================================================================
+function buildModel(p) {
+  const { capex, rev_el_base, rev_co_base, opex_base, p_neta_base,
+          kd, ke, debt_r, tax, dep_y, debt_t,
+          tok_r, rev_tok_r, tok_s, sto_d,
+          inflation, price_esc, degradation,
+          co2_price, grid_int } = p;
+
+  const debt   = capex * debt_r;
+  const equity = capex - debt;
+  const eq_tok = equity * tok_r;
+  const eq_res = equity - eq_tok;
+  const dep    = capex / dep_y;
+  const svc    = annuity(debt, kd, debt_t);
+  const wacc   = ke*(1-debt_r) + kd*(1-tax)*debt_r;
+
+  const fcff=[-capex], fcfe=[-equity], tok=[-eq_tok];
+  const rows=[];
+  let db=debt, nol=0, nol_max=0;
+
+  for (let t=1; t<=YEARS; t++) {
+    const deg    = Math.pow(1-degradation, t-1);
+    const p_t    = p_neta_base * deg;
+    const esc_e  = Math.pow(1+price_esc, t-1);
+    const esc_i  = Math.pow(1+inflation, t-1);
+
+    const r_el   = rev_el_base * deg * esc_e;
+    const r_co   = rev_co_base * deg * esc_i;
+    // Carbon credits: (MWh_elec*int_red + MWh_frio*0.15) * precio_CO2
+    const mwh_e  = p_t * 8000;
+    const mwh_f  = p_t * 2 * 8000;
+    const co2_t  = (mwh_e*grid_int + mwh_f*0.15) / 1000;  // tCO2/ano
+    const r_cb   = co2_t * co2_price;
+
+    const opex_t = opex_base * esc_i;
+    const int_t  = db * kd;
+    const princ  = t<=debt_t ? Math.min(svc-int_t, db) : 0;
+    db = Math.max(0, db-princ);
+
+    const ebitda = r_el + r_co + r_cb - opex_t;
+    const d_t    = t<=dep_y ? dep : 0;
+    const ebit   = ebitda - d_t;
+    const ebt    = ebit - int_t;
+
+    // NOL carryforward
+    let taxes_t=0;
+    if (ebt >= 0) {
+      const used  = Math.min(nol, ebt);
+      taxes_t = (ebt - used) * tax;
+      nol = Math.max(0, nol-used);
+    } else {
+      nol += -ebt;
+      if (nol > nol_max) nol_max = nol;
+    }
+    const net    = ebt - taxes_t;
+    const fcfe_t = net + d_t - princ;
+
+    // Distribucion a tokens: revenue share + equity share
+    const tok_rv = (r_el+r_co) * rev_tok_r;
+    const tok_eq = Math.max(0, fcfe_t) * tok_r;
+    const fcfe_tok = tok_rv + tok_eq;
+    const fcfe_res = fcfe_t - fcfe_tok;
+
+    const fcff_t = Math.max(ebit,0)*(1-tax) + d_t;
+
+    rows.push({t,p_t,deg,r_el,r_co,r_cb,co2_t,opex_t,ebitda,d_t,ebit,int_t,princ,ebt,taxes_t,net,fcfe_t,fcfe_tok,fcfe_res,db_end:db,svc_t:int_t+princ,nol_end:nol});
+    fcff.push(fcff_t);
+    fcfe.push(fcfe_t);
+    tok.push(fcfe_tok);
+  }
+
+  const irr_eq   = irr_nr(fcfe);
+  const irr_firm = irr_nr(fcff);
+  const irr_tok  = irr_nr(tok);
+  const npv_eq   = npv_f(fcfe, ke);
+  const npv_firm = npv_f(fcff, wacc);
+  const npv_tok  = npv_f(tok, ke);
+
+  // Payback
+  let pb=NaN, cum=fcfe[0];
+  for (let i=1;i<fcfe.length;i++){const prev=cum;cum+=fcfe[i];if(prev<0&&cum>=0){pb=i-1+Math.abs(prev)/fcfe[i];break;}}
+
+  // LCOE = (CAPEX + PV OPEX) / PV Energia
+  const pvc = rows.reduce((a,r,i)=>a+r.opex_t/Math.pow(1+wacc,i+1), capex);
+  const pve = rows.reduce((a,r,i)=>a+r.p_t*8000/Math.pow(1+wacc,i+1), 0);
+  const lcoe = pvc/Math.max(pve,1);
+
+  // Cumulative
+  let ce=-equity, ct=-eq_tok;
+  const acum_e=[], acum_t=[];
+  for(let i=0;i<rows.length;i++){ce+=fcfe[i+1];acum_e.push(ce);ct+=tok[i+1];acum_t.push(ct);}
+
+  const total_co2 = rows.reduce((a,r)=>a+r.co2_t,0);
+  const total_crb = rows.reduce((a,r)=>a+r.r_cb,0);
+
+  // Token valuation
+  const tok_supply = tok_s * 1e6;
+  const tok_fv    = (npv_tok + eq_tok) / tok_supply;
+  const tok_price = tok_fv * (1 - sto_d);
+  const tok_mcap  = tok_price * tok_supply;
+  const tok_div1  = tok[1] / tok_supply;
+  const tok_yield = (tok_div1 / Math.max(tok_price, 0.001)) * 100;
+
+  return { rows, fcff, fcfe, tok, acum_e, acum_t,
+           irr_eq, irr_firm, irr_tok, npv_eq, npv_firm, npv_tok,
+           equity, eq_tok, eq_res, debt, wacc, pb, lcoe, nol_max,
+           total_co2, total_crb,
+           tok_supply, tok_price, tok_mcap, tok_div1, tok_yield, npv_tok,
+           ebitda_1: rows[0]?.ebitda||0, fcfe_1: rows[0]?.fcfe_t||0 };
+}
+
+// ================================================================
+// CHARTS
+// ================================================================
+const CHTS = {};
+function mkCtx(id) { if(CHTS[id]) CHTS[id].destroy(); return document.getElementById(id).getContext('2d'); }
+const CDFL = {
+  responsive:true, maintainAspectRatio:false, animation:{duration:280},
+  plugins:{legend:{display:false}, tooltip:{backgroundColor:'#0d1117',borderColor:'rgba(99,179,237,.3)',borderWidth:1,titleColor:'#63b3ed',bodyColor:'#e2e8f0',titleFont:{family:'Space Mono',size:9},bodyFont:{family:'Space Mono',size:10}}},
+  scales:{x:{grid:{color:'rgba(99,179,237,.04)'},ticks:{color:'#64748b',font:{family:'Space Mono',size:8},maxTicksLimit:11}},y:{grid:{color:'rgba(99,179,237,.04)'},ticks:{color:'#64748b',font:{family:'Space Mono',size:8}}}}
+};
+
+function chartFCL(rows, acum_e, equity, npv_ok) {
+  const data = [-equity, ...acum_e];
+  const lc = npv_ok ? '#4ade80' : '#f87171';
+  const ptC = data.map(v=>v>=0?'rgba(74,222,128,.8)':'rgba(248,113,113,.8)');
+  const ptR = data.map((v,i)=>i>0&&data[i-1]<0&&v>=0?7:3);
+  const ctx = mkCtx('fclChart');
+  CHTS['fclChart'] = new Chart(ctx, { type:'line', data:{
+    labels:['A0',...rows.map(r=>'A'+r.t)],
+    datasets:[{data,borderColor:lc,backgroundColor:lc.replace(')',', .06)').replace('#','rgba(').replace('80','128').replace('71','113')+')',
+      borderWidth:2,fill:true,tension:.35,pointBackgroundColor:ptC,pointRadius:ptR,pointHoverRadius:5}]
+  }, options:{...CDFL, plugins:{...CDFL.plugins, tooltip:{...CDFL.plugins.tooltip, callbacks:{label:c=>' '+fmtM(c.parsed.y)}}},
+     scales:{...CDFL.scales, y:{...CDFL.scales.y, ticks:{...CDFL.scales.y.ticks,callback:v=>fmtM(v)}}}}});
+}
+
+function chartRevenue(rows) {
+  const ctx = mkCtx('revChart');
+  CHTS['revChart'] = new Chart(ctx, { type:'bar', data:{
+    labels: rows.map(r=>'A'+r.t),
+    datasets:[
+      {label:'Electrico',data:rows.map(r=>r.r_el),backgroundColor:'rgba(99,179,237,.5)',stack:'rev'},
+      {label:'Frio',data:rows.map(r=>r.r_co),backgroundColor:'rgba(74,222,128,.5)',stack:'rev'},
+      {label:'Carbon',data:rows.map(r=>r.r_cb),backgroundColor:'rgba(34,211,238,.5)',stack:'rev'},
+      {label:'OPEX',data:rows.map(r=>-r.opex_t),backgroundColor:'rgba(248,113,113,.4)',stack:'rev'}
+    ]
+  }, options:{...CDFL, plugins:{...CDFL.plugins, legend:{display:true,labels:{color:'#64748b',font:{family:'Space Mono',size:8},boxWidth:10}}},
+     scales:{...CDFL.scales, y:{...CDFL.scales.y, stacked:true, ticks:{...CDFL.scales.y.ticks,callback:v=>fmtM(v)}}}}});
+}
+
+function chartToken(acum_t, eq_tok, tok_price, tok_supply) {
+  const perT = acum_t.map(v=>v/tok_supply);
+  const data = [-tok_price, ...perT];
+  const lc = '#a78bfa';
+  const ctx = mkCtx('tkChart');
+  CHTS['tkChart'] = new Chart(ctx, { type:'line', data:{
+    labels:['A0',...Array.from({length:YEARS},(_,i)=>'A'+(i+1))],
+    datasets:[{data,borderColor:lc,backgroundColor:'rgba(167,139,250,.06)',borderWidth:2,fill:true,tension:.35,
+      pointBackgroundColor:data.map(v=>v>=0?'rgba(167,139,250,.8)':'rgba(248,113,113,.8)'),
+      pointRadius:data.map((v,i)=>i>0&&data[i-1]<0&&v>=0?7:3),pointHoverRadius:5}]
+  }, options:{...CDFL,plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{label:c=>' $'+fmt(c.parsed.y,2)+'/tok'}}},
+     scales:{...CDFL.scales,y:{...CDFL.scales.y,ticks:{...CDFL.scales.y.ticks,callback:v=>'$'+fmt(v,2)}}}}});
+}
+
+function chartCarbon(rows) {
+  const ctx = mkCtx('cbChart');
+  CHTS['cbChart'] = new Chart(ctx, { type:'bar', data:{
+    labels: rows.map(r=>'A'+r.t),
+    datasets:[
+      {label:'CO2 evitado (tCO2)',data:rows.map(r=>r.co2_t),backgroundColor:'rgba(34,211,238,.35)',borderColor:'#22d3ee',borderWidth:1,yAxisID:'y1'},
+      {type:'line',label:'Ingr. carbon (USD)',data:rows.map(r=>r.r_cb),borderColor:'#4ade80',backgroundColor:'transparent',borderWidth:2,pointRadius:2,yAxisID:'y2'}
+    ]
+  }, options:{...CDFL, plugins:{...CDFL.plugins, legend:{display:true,labels:{color:'#64748b',font:{family:'Space Mono',size:8},boxWidth:10}}},
+     scales:{y1:{grid:{color:'rgba(99,179,237,.04)'},ticks:{color:'#22d3ee',font:{family:'Space Mono',size:8},callback:v=>fmt(v,0)+' t'},position:'left'},
+             y2:{grid:{display:false},ticks:{color:'#4ade80',font:{family:'Space Mono',size:8},callback:v=>fmtM(v)},position:'right'},
+             x:{...CDFL.scales.x}}}});
+}
+
+function chartExergy(t_lng, t_amb) {
+  const T0 = t_amb + 273.15;
+  const temps = [-165,-160,-155,-150,-145,-140].map(t=>t);
+  const exs   = temps.map(t=>calcExergia(t+273.15, T0));
+  const ctx = mkCtx('exChart');
+  CHTS['exChart'] = new Chart(ctx, { type:'line', data:{
+    labels: temps.map(t=>t+'C'),
+    datasets:[{data:exs,borderColor:'#63b3ed',backgroundColor:'rgba(99,179,237,.08)',borderWidth:2,fill:true,tension:.4,
+      pointBackgroundColor:temps.map(t=>t<=t_lng?'#63b3ed':'rgba(99,179,237,.3)'),
+      pointRadius:temps.map(t=>Math.abs(t-t_lng)<3?7:3)}]
+  }, options:{...CDFL,plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{label:c=>' '+fmt(c.parsed.y,1)+' kJ/kg'}}},
+     scales:{...CDFL.scales,y:{...CDFL.scales.y,ticks:{...CDFL.scales.y.ticks,callback:v=>fmt(v,0)+' kJ/kg'}}}}});
+}
+
+function chartCycles(t_lng, t_amb, eta_user) {
+  const T0 = t_amb+273.15, TL=t_lng+273.15;
+  const types = ['direct','rankine','combined','brayton'];
+  const ex = calcExergia(TL, T0);
+  const m_s = (BP.flow*1000)/3600;
+  const pows = types.map(c=>{const ef=realCycleEff(eta_user,c,TL,T0);return (m_s*ex*ef)/1000;});
+  const colors = ['rgba(99,179,237,.6)','rgba(74,222,128,.6)','rgba(167,139,250,.6)','rgba(245,158,11,.6)'];
+  const ctx = mkCtx('cycChart');
+  CHTS['cycChart'] = new Chart(ctx, { type:'bar', data:{
+    labels: types.map(t=>CYC_NAME[t]),
+    datasets:[{data:pows,backgroundColor:colors,borderRadius:5}]
+  }, options:{...CDFL,plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{label:c=>' '+fmt(c.parsed.y,2)+' MW'}}},
+     scales:{...CDFL.scales,y:{...CDFL.scales.y,ticks:{...CDFL.scales.y.ticks,callback:v=>fmt(v,1)+' MW'}}}}});
+}
+
+// ================================================================
+// MONTE CARLO
+// ================================================================
+let MC_DONE = false;
+function runMC() {
+  const btn = document.getElementById('mc-btn');
+  btn.classList.add('running'); btn.textContent='Simulando...';
+  setTimeout(()=>{
+    const N=500, irrs=[], npvs=[];
+    for(let i=0;i<N;i++){
+      const pv = {...BP,
+        rev_el_base: BP.rev_el_base * (1+randn()*0.15),
+        rev_co_base: BP.rev_co_base * (1+randn()*0.25),
+        capex:       BP.capex * (1+Math.abs(randn())*0.10),  // solo positivo (sobrecosto)
+        flow:        BP.flow  * (1+randn()*0.08),
+      };
+      // recompute p_neta_base con nuevo flujo
+      const ex2 = calcExergia(BP.t_lng_K, BP.t_amb_K);
+      const ms2 = (pv.flow*1000)/3600;
+      const ef2 = realCycleEff(BP.eta_user, BP.cycle, BP.t_lng_K, BP.t_amb_K) * (1+randn()*0.05);
+      pv.p_neta_base = (ms2*ex2*ef2)/1000;
+      pv.opex_base   = pv.capex*0.03;
+      try {
+        const M2 = buildModel(pv);
+        if(!isNaN(M2.irr_eq) && M2.irr_eq>-50 && M2.irr_eq<200) irrs.push(M2.irr_eq);
+        if(!isNaN(M2.npv_eq)) npvs.push(M2.npv_eq);
+      } catch(e){}
+    }
+    irrs.sort((a,b)=>a-b);
+    const p10=pctile(irrs,10), p50=pctile(irrs,50), p90=pctile(irrs,90);
+    const prob_pos = npvs.filter(v=>v>0).length / Math.max(npvs.length,1) * 100;
+
+    document.getElementById('mc-p10').textContent = fmt(p10,1)+'%';
+    document.getElementById('mc-p50').textContent = fmt(p50,1)+'%';
+    document.getElementById('mc-p90').textContent = fmt(p90,1)+'%';
+    document.getElementById('mc-pv').textContent  = fmt(prob_pos,0)+'%';
+    document.getElementById('mc-stats').style.display='grid';
+    document.getElementById('mc-charts').style.display='grid';
+
+    // Histogram
+    const nbins=20, mn=Math.min(...irrs), mx=Math.max(...irrs), bw=(mx-mn)/nbins;
+    const bins=Array(nbins).fill(0), lbls=[];
+    irrs.forEach(v=>{const b=Math.min(Math.floor((v-mn)/bw),nbins-1);bins[b]++;});
+    for(let b=0;b<nbins;b++) lbls.push(fmt(mn+b*bw,0)+'%');
+    const ctx1=mkCtx('mc-hist');
+    CHTS['mc-hist']=new Chart(ctx1,{type:'bar',data:{labels:lbls,datasets:[{data:bins,backgroundColor:bins.map((_,i)=>{const v=mn+i*bw;return v<0?'rgba(248,113,113,.5)':v<BP.ke*100?'rgba(245,158,11,.5)':'rgba(74,222,128,.5)';}),borderRadius:2}]},options:{...CDFL,plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{title:c=>c[0].label,label:c=>' '+c.parsed.y+' escenarios'}}}}});
+
+    // Tornado: sensibilidad univariable
+    const vars = [
+      {name:'Precio elec.',delta:0.20,field:'rev_el_base'},
+      {name:'Precio frio', delta:0.25,field:'rev_co_base'},
+      {name:'CAPEX',       delta:0.15,field:'capex',neg:true},
+      {name:'Flujo GNL',   delta:0.10,field:'p_neta_base'},
+      {name:'Eficiencia',  delta:0.08,field:'p_neta_base'},
+    ];
+    const base_irr = irr_nr([...GLOBAL_M.fcfe]);
+    const tornadoData = vars.map(v=>{
+      const ph={...BP,[v.field]:BP[v.field]*(1+(v.neg?-1:1)*v.delta)};
+      if(v.field==='p_neta_base'&&v.name==='Eficiencia'){ph.p_neta_base=BP.p_neta_base*(1+v.delta);}
+      let M2;try{M2=buildModel(ph);}catch(e){return {name:v.name,delta:0};}
+      return {name:v.name,delta:Math.abs((M2.irr_eq||base_irr)-base_irr)};
+    }).sort((a,b)=>b.delta-a.delta);
+    const ctx2=mkCtx('mc-torn');
+    CHTS['mc-torn']=new Chart(ctx2,{type:'bar',data:{labels:tornadoData.map(v=>v.name),datasets:[{data:tornadoData.map(v=>v.delta),backgroundColor:'rgba(99,179,237,.5)',borderRadius:4}]},
+      options:{...CDFL,indexAxis:'y',plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{label:c=>' +/-'+fmt(c.parsed.x,1)+' pp TIR'}}},
+        scales:{x:{...CDFL.scales.x,ticks:{...CDFL.scales.x.ticks,callback:v=>fmt(v,1)+' pp'}},y:{...CDFL.scales.y}}}});
+
+    btn.classList.remove('running'); btn.textContent='Simulacion completada - Ejecutar de nuevo';
+    MC_DONE=true;
+  },50);
+}
+
+// ================================================================
+// HEATMAP
+// ================================================================
+function drawHeatmap() {
+  const prices=[50,70,90,110,130], effs=[0.18,0.22,0.26,0.30,0.36];
+  const hm=document.getElementById('hmap');
+  let html='<div style="grid-column:1/2"></div>';
+  prices.forEach(pr=>{html+=`<div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--mu);text-align:center;padding:3px;">${pr}</div>`;});
+  effs.forEach(ef=>{
+    html+=`<div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--mu);display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">${(ef*100).toFixed(0)}%</div>`;
+    prices.forEach(pr=>{
+      const pp = {...BP, p_neta_base: BP.p_neta_base*(ef/BP.eff_real), rev_el_base: BP.rev_el_base*(pr/BP.price_base)};
+      let irr=NaN; try{irr=buildModel(pp).irr_eq;}catch(e){}
+      const col=isNaN(irr)?'#1a2332':irr<8?'rgba(248,113,113,.25)':irr<15?'rgba(245,158,11,.25)':irr<22?'rgba(99,179,237,.25)':'rgba(74,222,128,.25)';
+      const tc=isNaN(irr)?'#64748b':irr<8?'#f87171':irr<15?'#f59e0b':irr<22?'#63b3ed':'#4ade80';
+      html+=`<div style="background:${col};border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:${tc};padding:7px 2px;">${isNaN(irr)?'N/A':fmt(irr,0)+'%'}</div>`;
+    });
+  });
+  hm.innerHTML=html;
+  hm.style.gridTemplateColumns='auto repeat(5,1fr)';
+}
+
+// ================================================================
+// TECH COMPARATOR
+// ================================================================
+function drawTechTable(lcoe, capex_kw) {
+  const techs=[
+    {n:'Exergia Fria (este proyecto)',capex:capex_kw,lcoe:fmt(lcoe,1),cf:'91%',life:'20a',co2:'0.45',irr:'calc',hi:true},
+    {n:'Solar FV utility-scale',capex:950,lcoe:'46',cf:'18%',life:'25a',co2:'0.45',irr:'~12%'},
+    {n:'Eolica onshore',capex:1350,lcoe:'41',cf:'30%',life:'25a',co2:'0.45',irr:'~10%'},
+    {n:'BESS (almacenamiento)',capex:500,lcoe:'115',cf:'85%',life:'15a',co2:'0.20',irr:'~8%'},
+    {n:'Turbina gas peaker',capex:850,lcoe:'95',cf:'25%',life:'20a',co2:'0 (baseline)',irr:'~14%'},
+  ];
+  document.getElementById('tech-tbody').innerHTML=techs.map(t=>`<tr${t.hi?' class="highlight"':''}>
+    <td>${t.n}</td><td>$${t.capex}</td><td>$${t.lcoe}</td><td>${t.cf}</td><td>${t.life}</td><td>${t.co2}</td><td>${t.irr}</td>
+  </tr>`).join('');
+}
+
+// ================================================================
+// ESCENARIOS
+// ================================================================
+function calcScenario(pMult, coldMult, capexMult) {
+  const p2={...BP,rev_el_base:BP.rev_el_base*pMult,rev_co_base:BP.rev_co_base*coldMult,capex:BP.capex*capexMult,opex_base:BP.capex*capexMult*0.03};
+  try{const M2=buildModel(p2);return{irr:M2.irr_eq,npv:M2.npv_eq,pb:M2.pb};}catch(e){return{irr:NaN,npv:NaN,pb:NaN};}
+}
+
+// ================================================================
+// FORMATOS
+// ================================================================
+function fmt(n,d=2){return isNaN(n)?'N/A':n.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtM(n){if(isNaN(n))return'N/A';const s=n<0?'-':'';const a=Math.abs(n);return s+'$'+(a>=1e9?fmt(a/1e9)+'B':fmt(a/1e6)+'M');}
+function pct(n,d=1){return isNaN(n)?'N/A':fmt(n,d)+'%';}
+function animEl(id){const e=document.getElementById(id);if(!e)return;e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');}
+function slBg(el){const p=((parseFloat(el.value)-parseFloat(el.min))/(parseFloat(el.max)-parseFloat(el.min)))*100;el.style.background=`linear-gradient(to right,#63b3ed ${p}%,rgba(99,179,237,.1) ${p}%)`;}
+
+// ================================================================
+// FIRMA DIGITAL
+// ================================================================
+function projHash(p) {
+  const s=JSON.stringify({pn:Math.round(p.p_neta_base*100),irr:Math.round((p.irr_hint||0)*10),capex:Math.round(p.capex/1e4),ts:new Date().toDateString()});
+  let h=0; for(const c of s) h=(Math.imul(h,31)+c.charCodeAt(0))|0;
+  return 'EXF-'+Math.abs(h).toString(16).toUpperCase().padStart(8,'0');
+}
+
+// ================================================================
+// EXPORT PDF
+// ================================================================
+function exportPDF() {
+  if(typeof window.jspdf==='undefined'){alert('Cargando jsPDF...');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const M=GLOBAL_M, p=BP;
+  const hash=document.getElementById('sig-hash').textContent;
+  doc.setFontSize(18); doc.setTextColor(37,99,235);
+  doc.text('Exergia Fria Pro - PIVTAN v5.0',14,20);
+  doc.setFontSize(10); doc.setTextColor(100,116,139);
+  doc.text('Informe de Viabilidad Financiera - '+new Date().toLocaleDateString('es-CO'),14,28);
+  doc.text('Firma digital: '+hash,14,34);
+  doc.setDrawColor(37,99,235); doc.line(14,37,196,37);
+  doc.setFontSize(12); doc.setTextColor(30,41,59);
+  doc.text('RESUMEN TECNICO-FINANCIERO',14,46);
+  const rows=[
+    ['Potencia neta',fmt(p.p_neta_base,2)+' MW'],
+    ['Exergia especifica GNL',fmt(p.ex_spec,1)+' kJ/kg'],
+    ['TIR Equity (Newton-Raphson)',pct(M.irr_eq)],
+    ['VAN Equity',fmtM(M.npv_eq)],
+    ['Payback equity',isNaN(M.pb)?'>20a':fmt(M.pb,1)+' anos'],
+    ['LCOE proyecto',fmt(M.lcoe,2)+' USD/MWh'],
+    ['WACC calculado',pct(M.wacc*100)],
+    ['CAPEX total',fmtM(p.capex)],
+    ['TIR Token STO',pct(M.irr_tok)],
+    ['Precio token STO','$'+fmt(M.tok_price,2)],
+    ['CO2 evitado 20 anos',fmt(M.total_co2/1000,2)+' ktCO2'],
+    ['Ingresos carbon 20a',fmtM(M.total_crb)],
+  ];
+  doc.setFontSize(10);
+  rows.forEach((r,i)=>{
+    const y=56+i*9;
+    doc.setTextColor(100,116,139); doc.text(r[0],14,y);
+    doc.setTextColor(30,41,59); doc.setFont(undefined,'bold'); doc.text(r[1],120,y);
+    doc.setFont(undefined,'normal');
+    if(i%2===0){doc.setFillColor(248,250,252);doc.rect(12,y-5,184,9,'F');}
+  });
+  doc.setFontSize(8); doc.setTextColor(148,163,184);
+  doc.text('Modelo: Exergia fisica CH4 | Newton-Raphson IRR | NOL carryforward | Inflacion OPEX | Degradacion activos | Creditos carbono',14,190);
+  doc.save('PIVTAN-EFP-'+hash+'.pdf');
+}
+
+// ================================================================
+// EXPORT EXCEL
+// ================================================================
+function exportXLS() {
+  if(typeof XLSX==='undefined'){alert('Cargando XLSX...');return;}
+  const M=GLOBAL_M, p=BP;
+  const ws_data=[
+    ['PIVTAN - Exergia Fria Pro v5.0'],
+    ['Firma digital:', document.getElementById('sig-hash').textContent],
+    ['Fecha:', new Date().toLocaleDateString('es-CO')],
+    [],
+    ['SUPUESTOS'],
+    ['Potencia neta (MW)', fmt(p.p_neta_base,2)],
+    ['Exergia GNL (kJ/kg)', fmt(p.ex_spec,1)],
+    ['CAPEX total (USD)', p.capex],
+    ['WACC (%)', fmt(p.wacc*100,2)],
+    ['Ke (%)', fmt(p.ke*100,1)],
+    ['Kd (%)', fmt(p.kd*100,1)],
+    ['Tasa impositiva (%)', fmt(p.tax*100,0)],
+    ['Inflacion OPEX (%/a)', fmt(p.inflation*100,1)],
+    ['Escalacion precio elec. (%/a)', fmt(p.price_esc*100,1)],
+    ['Degradacion anual (%)', fmt(p.degradation*100,1)],
+    ['Precio CO2 (USD/tCO2)', p.co2_price],
+    [],
+    ['ANO','P_neta (MW)','Rev. Elec (USD)','Rev. Frio (USD)','Creditos C (USD)','OPEX (USD)','EBITDA (USD)','Intereses','Amort.','Impuestos','FCL Equity (USD)','FCL Tokens (USD)','CO2 evit (tCO2)'],
+    ...M.rows.map(r=>[r.t,fmt(r.p_t,2),Math.round(r.r_el),Math.round(r.r_co),Math.round(r.r_cb),Math.round(r.opex_t),Math.round(r.ebitda),Math.round(r.int_t),Math.round(r.princ),Math.round(r.taxes_t),Math.round(r.fcfe_t),Math.round(r.fcfe_tok),Math.round(r.co2_t)]),
+    [],
+    ['METRICAS CONSOLIDADAS'],
+    ['TIR Equity (%)', fmt(M.irr_eq,2)],
+    ['VAN Equity (USD)', Math.round(M.npv_eq)],
+    ['TIR Proyecto (%)', fmt(M.irr_firm,2)],
+    ['LCOE (USD/MWh)', fmt(M.lcoe,2)],
+    ['Payback (anos)', isNaN(M.pb)?'>20':fmt(M.pb,1)],
+    ['TIR Token (%)', fmt(M.irr_tok,2)],
+    ['CO2 evitado total (tCO2)', Math.round(M.total_co2)],
+    ['Ingresos carbon total (USD)', Math.round(M.total_crb)],
+  ];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(ws_data);
+  ws['!cols']=[{wch:30},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:18},{wch:15}];
+  XLSX.utils.book_append_sheet(wb, ws, 'PIVTAN-EFP');
+  XLSX.writeFile(wb, 'PIVTAN-EFP-'+document.getElementById('sig-hash').textContent+'.xlsx');
+}
+
+// ================================================================
+// ESTADO GLOBAL Y CALCULO PRINCIPAL
+// ================================================================
+let BP = {};        // base params para MC y escenarios
+let GLOBAL_M = {};  // modelo base
+
+function calculate() {
+  // --- Leer inputs ---
+  const flow    = parseFloat(document.getElementById('flow').value);
+  const t_lng   = parseFloat(document.getElementById('t_lng').value);
+  const t_amb   = parseFloat(document.getElementById('t_amb').value);
+  const cycle   = document.getElementById('cycle').value;
+  const eta_u   = parseFloat(document.getElementById('eff').value);
+  const degradation = parseFloat(document.getElementById('deg').value)/100;
+  const price_base  = parseFloat(document.getElementById('price').value);
+  const price_esc   = parseFloat(document.getElementById('price_esc').value)/100;
+  const cold_base   = parseFloat(document.getElementById('cold').value);
+  const co2_price   = parseFloat(document.getElementById('co2p').value);
+  const grid_int    = parseFloat(document.getElementById('grid_int').value);
+  const inflation   = parseFloat(document.getElementById('infl').value)/100;
+  const capex_kw    = parseFloat(document.getElementById('capex_kw').value)||4000;
+  const debt_r      = parseFloat(document.getElementById('debt_r').value)/100;
+  const kd          = (parseFloat(document.getElementById('kd').value)||6)/100;
+  const ke          = (parseFloat(document.getElementById('ke').value)||12)/100;
+  const tax         = (parseFloat(document.getElementById('tax').value)||33)/100;
+  const dep_y       = parseInt(document.getElementById('dep_y').value)||20;
+  const debt_t      = parseInt(document.getElementById('debt_t').value)||15;
+  const tok_r       = parseFloat(document.getElementById('tok_r').value)/100;
+  const tok_s       = parseFloat(document.getElementById('tok_s').value)||10;
+  const rev_tok_r   = parseFloat(document.getElementById('rev_t').value)/100;
+  const sto_d       = parseFloat(document.getElementById('sto_d').value)/100;
+
+  // Update labels
+  document.getElementById('lf').innerText  = fmt(flow,0);
+  document.getElementById('lt').innerText  = t_lng;
+  document.getElementById('la').innerText  = t_amb;
+  document.getElementById('le').innerText  = fmt(eta_u,0);
+  document.getElementById('ldg').innerText = fmt(degradation*100,1);
+  document.getElementById('lpr').innerText = fmt(price_base,0);
+  document.getElementById('lpe').innerText = fmt(price_esc*100,1);
+  document.getElementById('lco').innerText = fmt(cold_base,0);
+  document.getElementById('lcp').innerText = fmt(co2_price,0);
+  document.getElementById('lci').innerText = fmt(grid_int,2);
+  document.getElementById('linf').innerText= fmt(inflation*100,1);
+  document.getElementById('ldr').innerText = fmt(debt_r*100,0);
+  document.getElementById('ltk').innerText = fmt(tok_r*100,0);
+  document.getElementById('lrt').innerText = fmt(rev_tok_r*100,0);
+  document.getElementById('lsd').innerText = fmt(sto_d*100,0);
+  document.querySelectorAll('input[type=range]').forEach(slBg);
+
+  // --- Termodinamica ---
+  const T_lng_K = t_lng + 273.15;
+  const T_amb_K = t_amb + 273.15;
+  const ex_spec = calcExergia(T_lng_K, T_amb_K);
+  const eff_real = realCycleEff(eta_u, cycle, T_lng_K, T_amb_K);
+  const m_s     = (flow*1000)/3600;
+  const p_neta  = (m_s*ex_spec*eff_real)/1000;
+  const p_frio  = p_neta*2;
+  const carnot_r= (eff_real/Math.max(carnotEff(T_lng_K,T_amb_K),0.01))*100;
+
+  // --- Finanzas ---
+  const capex     = p_neta*1000*capex_kw;
+  const rev_el_base = p_neta*8000*price_base;
+  const rev_co_base = p_frio *8000*cold_base;
+  const opex_base   = capex*0.03;
+
+  BP = { flow, t_lng_K:T_lng_K, t_amb_K:T_amb_K, cycle, eta_user:eta_u, eff_real, degradation,
+         price_base, price_esc, cold_base, co2_price, grid_int, inflation,
+         capex_kw, debt_r, kd, ke, tax, dep_y, debt_t,
+         tok_r, tok_s, rev_tok_r, sto_d,
+         capex, rev_el_base, rev_co_base, opex_base,
+         p_neta_base:p_neta, ex_spec, wacc:ke*(1-debt_r)+kd*(1-tax)*debt_r };
+
+  const M = buildModel(BP);
+  GLOBAL_M = M;
+  BP.irr_hint = M.irr_eq;
+
+  // ── TAB INGENIERIA ──
+  ['r-ex','r-mw','r-pf','r-ca'].forEach(animEl);
+  document.getElementById('r-ex').innerText  = fmt(ex_spec,1)+' kJ/kg';
+  document.getElementById('r-mw').innerText  = fmt(p_neta,2)+' MW';
+  document.getElementById('r-pf').innerText  = fmt(p_frio,2)+' MW-t';
+  document.getElementById('r-ca').innerText  = pct(carnot_r);
+  document.getElementById('in-tlng').innerText= t_lng+'C ('+fmt(T_lng_K,1)+' K)';
+  document.getElementById('in-tamb').innerText= t_amb+'C ('+fmt(T_amb_K,1)+' K)';
+  document.getElementById('in-cyc').innerText = CYC_NAME[cycle];
+  document.getElementById('in-emax').innerText= pct(EFF_MAX[cycle]*100);
+  document.getElementById('in-ms').innerText  = fmt(m_s,2)+' kg/s';
+  document.getElementById('in-ex').innerText  = fmt(ex_spec,1)+' kJ/kg';
+  document.getElementById('in-deg').innerText = fmt(degradation*100,1)+'% / ano';
+  chartExergy(t_lng, t_amb);
+  chartCycles(t_lng, t_amb, eta_u);
+
+  // ── TAB FINANCIERO ──
+  ['r-irr','r-npv','r-pb','r-lcoe'].forEach(animEl);
+  document.getElementById('r-irr').innerText  = pct(M.irr_eq);
+  document.getElementById('r-npv').innerText  = fmtM(M.npv_eq);
+  document.getElementById('r-pb').innerText   = isNaN(M.pb)?'>20 a':fmt(M.pb,1)+' a';
+  document.getElementById('r-lcoe').innerText = fmt(M.lcoe,2)+' USD/MWh';
+
+  const r1 = M.rows[0];
+  document.getElementById('br-el').innerText = fmtM(r1?.r_el||0);
+  document.getElementById('br-co').innerText = fmtM(r1?.r_co||0);
+  document.getElementById('br-cb').innerText = fmtM(r1?.r_cb||0);
+  document.getElementById('br-op').innerText = fmtM(r1?.opex_t||0);
+  document.getElementById('br-eb').innerText = fmtM(r1?.ebitda||0);
+  document.getElementById('br-fc').innerText = fmtM(r1?.fcfe_t||0);
+  const rmax=Math.max((r1?.r_el||0)+(r1?.r_co||0)+(r1?.r_cb||0),1);
+  document.getElementById('bb-el').style.width=((r1?.r_el||0)/rmax*100)+'%';
+  document.getElementById('bb-co').style.width=((r1?.r_co||0)/rmax*100)+'%';
+  document.getElementById('bb-cb').style.width=((r1?.r_cb||0)/rmax*100)+'%';
+  document.getElementById('bb-op').style.width=((r1?.opex_t||0)/rmax*100)+'%';
+
+  document.getElementById('br-ca').innerText = fmtM(capex);
+  document.getElementById('br-de').innerText = fmtM(M.debt);
+  document.getElementById('br-eq').innerText = fmtM(M.equity);
+  document.getElementById('br-wa').innerText = pct(M.wacc*100);
+  document.getElementById('br-if').innerText = pct(M.irr_firm);
+  document.getElementById('br-nf').innerText = fmtM(M.npv_firm);
+  document.getElementById('br-nl').innerText = M.nol_max>0?fmtM(M.nol_max):'Sin NOL';
+
+  chartFCL(M.rows, M.acum_e, M.equity, M.npv_eq>=0);
+  chartRevenue(M.rows);
+
+  // ── TAB TOKENIZACION ──
+  ['tk-pr','tk-mc','tk-yi','tk-ir','tk-np','tk-dv'].forEach(animEl);
+  document.getElementById('tk-pr').innerText = isNaN(M.tok_price)?'N/A':'$'+fmt(M.tok_price,2);
+  document.getElementById('tk-mc').innerText = fmtM(M.tok_mcap);
+  document.getElementById('tk-yi').innerText = pct(M.tok_yield);
+  document.getElementById('tk-ir').innerText = pct(M.irr_tok);
+  document.getElementById('tk-np').innerText = fmtM(M.npv_tok);
+  document.getElementById('tk-dv').innerText = isNaN(M.tok_div1)?'N/A':'$'+fmt(M.tok_div1,3);
+  const dPct=debt_r*100, tPct=tok_r*(1-debt_r)*100, ePct=(1-tok_r)*(1-debt_r)*100;
+  document.getElementById('ds-de').style.flex=dPct; document.getElementById('ds-de').innerText=dPct>8?fmt(dPct,0)+'%':'';
+  document.getElementById('ds-tk').style.flex=tPct; document.getElementById('ds-tk').innerText=tPct>5?fmt(tPct,0)+'%':'';
+  document.getElementById('ds-eq').style.flex=ePct; document.getElementById('ds-eq').innerText=ePct>5?fmt(ePct,0)+'%':'';
+  document.getElementById('lg-de').innerText=fmt(dPct,1)+'%';
+  document.getElementById('lg-tk').innerText=fmt(tPct,1)+'%';
+  document.getElementById('lg-eq').innerText=fmt(ePct,1)+'%';
+  document.getElementById('tk-su').innerText=fmt(tok_s,0)+' M tokens';
+  document.getElementById('tk-fr').innerText=pct(tok_r*100);
+  document.getElementById('tk-cp').innerText='$'+fmt(cold_base,2)+'/MWh-t';
+  chartToken(M.acum_t, M.eq_tok, M.tok_price, M.tok_supply);
+
+  // ── TAB MONTE CARLO - Escenarios deterministicos ──
+  const pess=calcScenario(0.75,0.55,1.15), base=calcScenario(1,1,1), opt=calcScenario(1.3,1.5,0.9);
+  document.getElementById('s-p-irr').innerText=pct(pess.irr); document.getElementById('s-p-npv').innerText=fmtM(pess.npv); document.getElementById('s-p-pb').innerText=isNaN(pess.pb)?'>20a':fmt(pess.pb,1)+'a';
+  document.getElementById('s-b-irr').innerText=pct(base.irr); document.getElementById('s-b-npv').innerText=fmtM(base.npv); document.getElementById('s-b-pb').innerText=isNaN(base.pb)?'>20a':fmt(base.pb,1)+'a';
+  document.getElementById('s-o-irr').innerText=pct(opt.irr);  document.getElementById('s-o-npv').innerText=fmtM(opt.npv);  document.getElementById('s-o-pb').innerText=isNaN(opt.pb)?'>20a':fmt(opt.pb,1)+'a';
+
+  // ── TAB CARBON ──
+  ['cb-y1','cb-t','cb-r'].forEach(animEl);
+  document.getElementById('cb-y1').innerText = fmt(r1?.co2_t||0,1)+' tCO2';
+  document.getElementById('cb-t').innerText  = fmt(M.total_co2/1000,1)+' ktCO2';
+  document.getElementById('cb-r').innerText  = fmtM(M.total_crb);
+  chartCarbon(M.rows);
+  drawHeatmap();
+  drawTechTable(M.lcoe, capex_kw);
+
+  // ── TAB EXPORTAR ──
+  const hash=projHash(BP);
+  document.getElementById('sig-hash').innerText=hash;
+  document.getElementById('sig-ts').innerText='Generado: '+new Date().toLocaleString('es-CO');
+  document.getElementById('exp-summary').innerHTML=`
+    <div class="mr"><span class="mn">Potencia neta</span><span class="mv ac">${fmt(p_neta,2)} MW</span></div>
+    <div class="mr"><span class="mn">TIR Equity</span><span class="mv gr">${pct(M.irr_eq)}</span></div>
+    <div class="mr"><span class="mn">VAN Equity</span><span class="mv gr">${fmtM(M.npv_eq)}</span></div>
+    <div class="mr"><span class="mn">Payback</span><span class="mv">${isNaN(M.pb)?'>20a':fmt(M.pb,1)+' a'}</span></div>
+    <div class="mr"><span class="mn">LCOE</span><span class="mv am">${fmt(M.lcoe,2)} USD/MWh</span></div>
+    <div class="mr"><span class="mn">TIR Token</span><span class="mv pu">${pct(M.irr_tok)}</span></div>
+    <div class="mr"><span class="mn">Precio token</span><span class="mv pu">${isNaN(M.tok_price)?'N/A':'$'+fmt(M.tok_price,2)}</span></div>
+    <div class="mr"><span class="mn">CO2 evitado/ano</span><span class="mv" style="color:var(--cy)">${fmt(r1?.co2_t||0,0)} tCO2</span></div>
+    <div class="mr"><span class="mn">CAPEX total</span><span class="mv">${fmtM(capex)}</span></div>
+    <div class="mr"><span class="mn">WACC</span><span class="mv am">${pct(M.wacc*100)}</span></div>
+  `;
+}
+
+// ================================================================
+// TAB SWITCHING
+// ================================================================
+function ST(name) {
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ns=['ing','fin','tok','mc','carb','exp'];
+    t.classList.toggle('active',ns[i]===name);
+  });
+  document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('t-'+name).classList.add('active');
+  setTimeout(()=>Object.values(CHTS).forEach(c=>{try{c.resize();}catch(e){}}),60);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+document.querySelectorAll('input').forEach(el=>{el.addEventListener('input',calculate);if(el.type==='range')slBg(el);});
+document.getElementById('cycle').addEventListener('change',calculate);
+calculate();
+</script>
+</body>
+</html>

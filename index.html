@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exergia Fria Pro v5 - STO + Monte Carlo + Carbon</title>
+<title>Exergia Fria Pro v5 - STO + Monte Carlo + Contabilidad Multi-Estándar</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -39,8 +39,8 @@ input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2p
 .live::before{content:'';width:6px;height:6px;background:var(--gr);border-radius:50%;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 /* TABS */
-.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--bdr);}
-.tab{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;cursor:pointer;color:var(--mu);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px;white-space:nowrap;}
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--bdr);overflow-x:auto;}
+.tab{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;cursor:pointer;color:var(--mu);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px;white-space:nowrap;}
 .tab.active{color:var(--ac);border-bottom-color:var(--ac);}
 .tab:hover:not(.active){color:var(--tx);}
 .tpane{display:none;flex-direction:column;gap:20px;}.tpane.active{display:flex;}
@@ -93,6 +93,14 @@ input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2p
 .leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
 .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--mu);}
 .ld{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+/* Tables Contables */
+.acc-table{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:10px;margin-top:10px;}
+.acc-table th{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:8px 10px;text-align:left;border-bottom:1px solid var(--bdr);}
+.acc-table td{padding:8px 10px;border-bottom:1px solid rgba(99,179,237,.05);color:var(--tx);}
+.acc-table tr:hover td{background:rgba(99,179,237,.02);}
+.acc-table .code{color:var(--ac);font-weight:700;}
+.acc-table .db{color:var(--gr);text-align:right;font-weight:700;}
+.acc-table .cr{color:var(--am);text-align:right;font-weight:700;}
 /* Scenario cards */
 .scen{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .sc{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:14px;text-align:center;}
@@ -177,7 +185,7 @@ input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2p
 <!-- MAIN -->
 <main class="main">
   <div class="ph">
-    <div><h2>Dashboard Financiero Criogenico</h2><p class="sub">PIVTAN v5 &mdash; TERMODINAMICA REAL + NOL + INFLACION + MONTE CARLO + CARBON + EXPORT</p></div>
+    <div><h2>Dashboard Financiero Criogenico</h2><p class="sub">PIVTAN v5 &mdash; CONTABILIDAD MULTI-ESTÁNDAR + HARMONIZACIÓN IFRS + TOKENIZACIÓN</p></div>
     <div class="live">TIEMPO REAL</div>
   </div>
 
@@ -187,6 +195,10 @@ input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2p
     <div class="tab" onclick="ST('tok')">Tokenizacion</div>
     <div class="tab" onclick="ST('mc')">Monte Carlo</div>
     <div class="tab" onclick="ST('carb')">Carbono &amp; Comp.</div>
+    <div class="tab" onclick="ST('puc')">PUC Colombia</div>
+    <div class="tab" onclick="ST('pgc')">PGC España</div>
+    <div class="tab" onclick="ST('skr')">SKR 04 Alemania</div>
+    <div class="tab" onclick="ST('ifrs')">Armonizacion IFRS</div>
     <div class="tab" onclick="ST('exp')">Exportar</div>
   </div>
 
@@ -363,6 +375,106 @@ input[type=number]:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 2p
     </div>
   </div>
 
+  <!-- TAB: PUC COLOMBIA -->
+  <div class="tpane" id="t-puc">
+    <div class="card">
+      <div class="ch"><span class="ct">Plan Único de Cuentas (PUC Colombia) - Registro Contable de la Planta y Tokenización</span><span class="badge ac">DECRETO 2650 / NIIF</span></div>
+      <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">Simulación de dinámicas contables bajo PUC Colombia para la capitalización de la Planta de Exergía y la emisión/reconocimiento de Utility Tokens de Frío (Pasivo Diferido 2705).</p>
+      <table class="acc-table">
+        <thead><tr><th>Código PUC</th><th>Denominación de la Cuenta</th><th>Débito (USD)</th><th>Crédito (USD)</th><th>Concepto / Evento</th></tr></thead>
+        <tbody id="puc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: PGC ESPAÑA -->
+  <div class="tpane" id="t-pgc">
+    <div class="card">
+      <div class="ch"><span class="ct">Plan General de Contabilidad (PGC España) - Simulación de Asientos</span><span class="badge gr">REAL DECRETO 1514/2007</span></div>
+      <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">Estructura contable conforme al PGC español. Reconocimiento de inmovilizado técnico, pasivos financieros STO y anticipos de clientes por Utility Tokens COLD-KWH (Cuenta 438).</p>
+      <table class="acc-table">
+        <thead><tr><th>Cuenta PGC</th><th>Nombre de Cuenta</th><th>Debe (USD)</th><th>Haber (USD)</th><th>Operación Contable</th></tr></thead>
+        <tbody id="pgc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: SKR 04 ALEMANIA -->
+  <div class="tpane" id="t-skr">
+    <div class="card">
+      <div class="ch"><span class="ct">DATEV Standardkontenrahmen SKR 04 (Deutschland)</span><span class="badge am">HGB / IFRS GERMANY</span></div>
+      <p style="font-size:11px;color:var(--mu);margin-bottom:12px;">Buchungssätze für kryogene Energieanlagen und Kälte-Tokenisierung nach SKR 04 (Abschlussgliederungsprinzip).</p>
+      <table class="acc-table">
+        <thead><tr><th>Konto SKR04</th><th>Kontenbezeichnung</th><th>Soll (USD)</th><th>Haben (USD)</th><th>Geschäftsvorfall</th></tr></thead>
+        <tbody id="skr-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: ARMONIZACION IFRS -->
+  <div class="tpane" id="t-ifrs">
+    <div class="card">
+      <div class="ch"><span class="ct">Matriz de Armonización e Interpretación IFRS / NIIF</span><span class="badge pu">IFRS FOUNDATION STANDARDS</span></div>
+      <p style="font-size:11px;color:var(--mu);margin-bottom:14px;">Tratamiento internacional armonizado para la planta termodinámica, los derechos de exergía, créditos de carbono y tokens emitidos.</p>
+      <table class="tech-table" style="text-align:left;">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Activo / Transacción</th>
+            <th style="text-align:left;">Norma IFRS / NIIF</th>
+            <th style="text-align:left;">Clasificación Contable</th>
+            <th style="text-align:left;">Criterio de Valoración Posterior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Planta Criogénica Exergía</td>
+            <td><span class="mv ac">IAS 16 / NIC 16</span></td>
+            <td>Propiedad, Planta y Equipo (PPE)</td>
+            <td>Modelo del Costo (Costo - Depreciación Acumulada - Deterioro)</td>
+          </tr>
+          <tr>
+            <td>Token ST-EXF (Security)</td>
+            <td><span class="mv pu">IFRS 9 / IAS 32</span></td>
+            <td>Pasivo Financiero / Instrumento Compuesto</td>
+            <td>Costo Amortizado / Valor Razonable con cambios en P&amp;G</td>
+          </tr>
+          <tr>
+            <td>Token COLD-KWH (Utility)</td>
+            <td><span class="mv am">IFRS 15 / NIIF 15</span></td>
+            <td>Pasivo por Contrato (Obligación de Desempeño)</td>
+            <td>Ingreso reconocido a medida que se entrega el frío (MWh-t)</td>
+          </tr>
+          <tr>
+            <td>Créditos de Carbono (VCS)</td>
+            <td><span class="mv cy">IAS 38 / NIC 38</span></td>
+            <td>Activo Intangible / Inventario (IAS 2)</td>
+            <td>Valor Razonable / Valor Neto Realizable</td>
+          </tr>
+          <tr>
+            <td>Diferencias de Inflación / NOL</td>
+            <td><span class="mv rd">IAS 12 / NIC 12</span></td>
+            <td>Activo por Impuesto Diferido (NOL carryforward)</td>
+            <td>Evaluación de probabilidad de ganancias fiscales futuras</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">Tratamiento de Tokenización de Frío en Balances</span><span class="badge cy">NIIF 15 vs IFRS 9</span></div>
+      <div class="c2">
+        <div style="background:var(--s2);padding:14px;border-radius:7px;border:1px solid var(--bdr);">
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--am);display:block;margin-bottom:6px;">UTILITY TOKEN (COLD-KWH)</span>
+          <p style="font-size:11px;color:var(--mu);line-height:1.5;">Bajo <strong>NIIF 15</strong>, la emisión anticipada de tokens de frío constituye un anticipo de clientes. Se registra inicialmente en el Pasivo como un <em>Pasivo por Contrato</em>. Al momento del flujo físico del GNL y entrega de la exergía fría, el pasivo se amortiza y se debita contra el Ingreso Operacional del periodo.</p>
+        </div>
+        <div style="background:var(--s2);padding:14px;border-radius:7px;border:1px solid var(--bdr);">
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--pu);display:block;margin-bottom:6px;">SECURITY TOKEN (ST-EXF)</span>
+          <p style="font-size:11px;color:var(--mu);line-height:1.5;">Bajo <strong>IAS 32 / IFRS 9</strong>, si el token de seguridad da derecho a un porcentaje del Revenue/EBITDA o dividendos, se clasifica como Pasivo Financiero a Valor Razonable o Instrumento de Patrimonio. Los pagos periódicos se contabilizan como gasto financiero o distribución de dividendos según su naturaleza contractual.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TAB: EXPORTAR -->
   <div class="tpane" id="t-exp">
     <div class="c2">
@@ -409,8 +521,6 @@ const CYC_NAME = {rankine:'Rankine (propano)', direct:'Expansion directa', combi
 // TERMODINAMICA REAL
 // ================================================================
 function calcExergia(T_lng_K, T0_K) {
-  // Exergia fisica del GNL respecto al ambiente
-  // ex = (h_lng - h0) - T0*(s_lng - s0) = T0*ds - dh  (con signos para flujo frio)
   const T_in = Math.min(T_lng_K, T_BP);  // GNL entra como liquido
   const dh = CP_L*(T_BP - T_in) + H_VAP + CP_G*(T0_K - T_BP);
   const ds = CP_L*Math.log(T_BP/T_in) + H_VAP/T_BP + CP_G*Math.log(T0_K/T_BP);
@@ -424,7 +534,6 @@ function carnotEff(T_lng_K, T0_K) {
 function realCycleEff(eta_user, cycleType, T_lng_K, T0_K) {
   const eta_max = EFF_MAX[cycleType] || 0.38;
   const eta_bounded = Math.min(eta_user/100, eta_max);
-  // Correccion por temperatura real vs referencia
   const carnot_real = carnotEff(T_lng_K, T0_K);
   const carnot_ref  = carnotEff(111.65, 298.15);
   const corr = Math.sqrt(Math.max(carnot_real/carnot_ref, 0.5));
@@ -437,7 +546,6 @@ function realCycleEff(eta_user, cycleType, T_lng_K, T0_K) {
 function annuity(pv, r, n) { return r===0 ? pv/n : pv*r/(1-Math.pow(1+r,-n)); }
 
 function irr_nr(cfs) {
-  // Newton-Raphson para TIR, convergencia < 1e-9
   if (!cfs || cfs.length < 2) return NaN;
   let r = 0.10;
   for (let it=0; it<400; it++) {
@@ -459,7 +567,6 @@ function irr_nr(cfs) {
 function npv_f(cfs, r) { return cfs.reduce((a,c,t) => a + c/Math.pow(1+r,t), 0); }
 
 function randn() {
-  // Box-Muller
   let u, v;
   do { u = Math.random(); } while (u===0);
   do { v = Math.random(); } while (v===0);
@@ -504,10 +611,9 @@ function buildModel(p) {
 
     const r_el   = rev_el_base * deg * esc_e;
     const r_co   = rev_co_base * deg * esc_i;
-    // Carbon credits: (MWh_elec*int_red + MWh_frio*0.15) * precio_CO2
     const mwh_e  = p_t * 8000;
     const mwh_f  = p_t * 2 * 8000;
-    const co2_t  = (mwh_e*grid_int + mwh_f*0.15) / 1000;  // tCO2/ano
+    const co2_t  = (mwh_e*grid_int + mwh_f*0.15) / 1000;
     const r_cb   = co2_t * co2_price;
 
     const opex_t = opex_base * esc_i;
@@ -520,7 +626,6 @@ function buildModel(p) {
     const ebit   = ebitda - d_t;
     const ebt    = ebit - int_t;
 
-    // NOL carryforward
     let taxes_t=0;
     if (ebt >= 0) {
       const used  = Math.min(nol, ebt);
@@ -533,7 +638,6 @@ function buildModel(p) {
     const net    = ebt - taxes_t;
     const fcfe_t = net + d_t - princ;
 
-    // Distribucion a tokens: revenue share + equity share
     const tok_rv = (r_el+r_co) * rev_tok_r;
     const tok_eq = Math.max(0, fcfe_t) * tok_r;
     const fcfe_tok = tok_rv + tok_eq;
@@ -554,16 +658,13 @@ function buildModel(p) {
   const npv_firm = npv_f(fcff, wacc);
   const npv_tok  = npv_f(tok, ke);
 
-  // Payback
   let pb=NaN, cum=fcfe[0];
   for (let i=1;i<fcfe.length;i++){const prev=cum;cum+=fcfe[i];if(prev<0&&cum>=0){pb=i-1+Math.abs(prev)/fcfe[i];break;}}
 
-  // LCOE = (CAPEX + PV OPEX) / PV Energia
   const pvc = rows.reduce((a,r,i)=>a+r.opex_t/Math.pow(1+wacc,i+1), capex);
   const pve = rows.reduce((a,r,i)=>a+r.p_t*8000/Math.pow(1+wacc,i+1), 0);
   const lcoe = pvc/Math.max(pve,1);
 
-  // Cumulative
   let ce=-equity, ct=-eq_tok;
   const acum_e=[], acum_t=[];
   for(let i=0;i<rows.length;i++){ce+=fcfe[i+1];acum_e.push(ce);ct+=tok[i+1];acum_t.push(ct);}
@@ -571,7 +672,6 @@ function buildModel(p) {
   const total_co2 = rows.reduce((a,r)=>a+r.co2_t,0);
   const total_crb = rows.reduce((a,r)=>a+r.r_cb,0);
 
-  // Token valuation
   const tok_supply = tok_s * 1e6;
   const tok_fv    = (npv_tok + eq_tok) / tok_supply;
   const tok_price = tok_fv * (1 - sto_d);
@@ -696,10 +796,9 @@ function runMC() {
       const pv = {...BP,
         rev_el_base: BP.rev_el_base * (1+randn()*0.15),
         rev_co_base: BP.rev_co_base * (1+randn()*0.25),
-        capex:       BP.capex * (1+Math.abs(randn())*0.10),  // solo positivo (sobrecosto)
+        capex:       BP.capex * (1+Math.abs(randn())*0.10),
         flow:        BP.flow  * (1+randn()*0.08),
       };
-      // recompute p_neta_base con nuevo flujo
       const ex2 = calcExergia(BP.t_lng_K, BP.t_amb_K);
       const ms2 = (pv.flow*1000)/3600;
       const ef2 = realCycleEff(BP.eta_user, BP.cycle, BP.t_lng_K, BP.t_amb_K) * (1+randn()*0.05);
@@ -722,7 +821,6 @@ function runMC() {
     document.getElementById('mc-stats').style.display='grid';
     document.getElementById('mc-charts').style.display='grid';
 
-    // Histogram
     const nbins=20, mn=Math.min(...irrs), mx=Math.max(...irrs), bw=(mx-mn)/nbins;
     const bins=Array(nbins).fill(0), lbls=[];
     irrs.forEach(v=>{const b=Math.min(Math.floor((v-mn)/bw),nbins-1);bins[b]++;});
@@ -730,7 +828,6 @@ function runMC() {
     const ctx1=mkCtx('mc-hist');
     CHTS['mc-hist']=new Chart(ctx1,{type:'bar',data:{labels:lbls,datasets:[{data:bins,backgroundColor:bins.map((_,i)=>{const v=mn+i*bw;return v<0?'rgba(248,113,113,.5)':v<BP.ke*100?'rgba(245,158,11,.5)':'rgba(74,222,128,.5)';}),borderRadius:2}]},options:{...CDFL,plugins:{...CDFL.plugins,tooltip:{...CDFL.plugins.tooltip,callbacks:{title:c=>c[0].label,label:c=>' '+c.parsed.y+' escenarios'}}}}});
 
-    // Tornado: sensibilidad univariable
     const vars = [
       {name:'Precio elec.',delta:0.20,field:'rev_el_base'},
       {name:'Precio frio', delta:0.25,field:'rev_co_base'},
@@ -753,6 +850,71 @@ function runMC() {
     btn.classList.remove('running'); btn.textContent='Simulacion completada - Ejecutar de nuevo';
     MC_DONE=true;
   },50);
+}
+
+// ================================================================
+// CONTABILIDAD MULTI-ESTANDAR
+// ================================================================
+function renderAccountingTables(M, p) {
+  const r1 = M.rows[0];
+  const capex = p.capex;
+  const debt = M.debt;
+  const eq_tok = M.eq_tok;
+  const eq_res = M.eq_res;
+  const rev_cold = r1 ? r1.r_co : 0;
+  const rev_elec = r1 ? r1.r_el : 0;
+
+  // PUC Colombia
+  const pucData = [
+    {code:'152005', name:'Maquinaria y Equipo (Planta Exergía Frio)', db:capex, cr:0, concept:'Activación CAPEX Inicial Planta Criogénica'},
+    {code:'210510', name:'Bancos Nacionales (Crédito Senior)', db:0, cr:debt, concept:'Financiación Deuda Bancaria Senior'},
+    {code:'310505', name:'Capital Suscrito y Pagado (Equity)', db:0, cr:eq_res, concept:'Aporte Capital Inversionistas Equity'},
+    {code:'219505', name:'Pasivo Financiero por Tokenización (ST-EXF)', db:0, cr:eq_tok, concept:'Recaudos Emisión Security Tokens'},
+    {code:'111005', name:'Bancos / Cuentas Corrientes (Anticipos Token Frío)', db:rev_cold, cr:0, concept:'Venta Anticipada de Tokens COLD-KWH'},
+    {code:'270505', name:'Ingresos Recibidos por Anticipado (Token Frío)', db:0, cr:rev_cold, concept:'Pasivo Diferido Venta de Frío (NIIF 15)'},
+    {code:'270505', name:'Ingresos Recibidos por Anticipado (Amortización)', db:rev_cold, cr:0, concept:'Amortización por Entrega Real de Frío Año 1'},
+    {code:'413505', name:'Ingresos Operacionales (Energía y Frío entregado)', db:0, cr:rev_elec + rev_cold, concept:'Reconocimiento Ingreso Operacional en P&G'}
+  ];
+
+  // PGC España
+  const pgcData = [
+    {code:'2130', name:'Maquinaria y Instalaciones Técnicas (Criogenia)', db:capex, cr:0, concept:'Inmovilizado Material - Planta Exergía'},
+    {code:'1700', name:'Deudas a largo plazo con entidades de crédito', db:0, cr:debt, concept:'Financiación Deuda Senior L/P'},
+    {code:'1000', name:'Capital Social (Accionistas Principales)', db:0, cr:eq_res, concept:'Fondos Propios Equity'},
+    {code:'1770', name:'Obligaciones y bonos - Tokens de Seguridad (ST-EXF)', db:0, cr:eq_tok, concept:'Emisión de Security Tokens bajo PGC'},
+    {code:'5720', name:'Bancos e instituciones de crédito', db:rev_cold, cr:0, concept:'Cobro Emisión Tokens Utility COLD-KWH'},
+    {code:'4380', name:'Anticipos de clientes (Token Frío - NIIF 15)', db:0, cr:rev_cold, concept:'Pasivo por Contrato / Entrega Pendiente'},
+    {code:'4380', name:'Anticipos de clientes (Cancelación)', db:rev_cold, cr:0, concept:'Entrega de Frío Industrial durante Año 1'},
+    {code:'7000', name:'Ventas de energía y prestación de frío industrial', db:0, cr:rev_elec + rev_cold, concept:'Ingresos de Explotación Año 1'}
+  ];
+
+  // SKR 04 Alemania
+  const skrData = [
+    {code:'0440', name:'Maschinen und technische Anlagen (Kälteanlage)', db:capex, cr:0, concept:'Zugang Sachanlagen / Exergie-Kraftwerk'},
+    {code:'3150', name:'Verbindlichkeiten gegenüber Kreditinstituten', db:0, cr:debt, concept:'Langfristiges Fremdkapital Senior Debt'},
+    {code:'0800', name:'Gezeichnetes Kapital (Equity)', db:0, cr:eq_res, concept:'Eigenkapital-Einlage'},
+    {code:'3100', name:'Sonstige Anleihen / Security Tokens (ST-EXF)', db:0, cr:eq_tok, concept:'Emission von Tokenisierten Wertpapieren'},
+    {code:'1800', name:'Bank Guthaben', db:rev_cold, cr:0, concept:'Einnahmen aus Utility Token Verkauf'},
+    {code:'3800', name:'Erhaltene Anzahlungen (Kälte-Tokens)', db:0, cr:rev_cold, concept:'Passiver Rechnungsabgrenzungsposten'},
+    {code:'3800', name:'Erhaltene Anzahlungen (Auflösung)', db:rev_cold, cr:0, concept:'Erlösrealisierung durch Kältelieferung'},
+    {code:'4000', name:'Umsatzerlöse Strom und Kälteenergie', db:0, cr:rev_elec + rev_cold, concept:'Umsatzerlöse Jahr 1'}
+  ];
+
+  const renderTbody = (id, data) => {
+    document.getElementById(id).innerHTML = data.map(r => `
+      <tr>
+        <td class="code">${r.code}</td>
+        <td>${r.name}</td>
+        <td class="db">${r.db > 0 ? '$' + fmt(r.db, 0) : '-'}</td>
+        <td class="cr">${r.cr > 0 ? '$' + fmt(r.cr, 0) : '-'}</td>
+        <td style="color:var(--mu);">${r.concept}</td>
+      </tr>
+    `).join('');
+  };
+
+  renderTbody('puc-tbody', pucData);
+  renderTbody('pgc-tbody', pgcData);
+  renderTbody('skr-tbody', skrData);
 }
 
 // ================================================================
@@ -802,7 +964,7 @@ function calcScenario(pMult, coldMult, capexMult) {
 }
 
 // ================================================================
-// FORMATOS
+// FORMATOS Y UTILIDADES
 // ================================================================
 function fmt(n,d=2){return isNaN(n)?'N/A':n.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});}
 function fmtM(n){if(isNaN(n))return'N/A';const s=n<0?'-':'';const a=Math.abs(n);return s+'$'+(a>=1e9?fmt(a/1e9)+'B':fmt(a/1e6)+'M');}
@@ -831,11 +993,11 @@ function exportPDF() {
   doc.setFontSize(18); doc.setTextColor(37,99,235);
   doc.text('Exergia Fria Pro - PIVTAN v5.0',14,20);
   doc.setFontSize(10); doc.setTextColor(100,116,139);
-  doc.text('Informe de Viabilidad Financiera - '+new Date().toLocaleDateString('es-CO'),14,28);
+  doc.text('Informe de Viabilidad Financiera y Contable - '+new Date().toLocaleDateString('es-CO'),14,28);
   doc.text('Firma digital: '+hash,14,34);
   doc.setDrawColor(37,99,235); doc.line(14,37,196,37);
   doc.setFontSize(12); doc.setTextColor(30,41,59);
-  doc.text('RESUMEN TECNICO-FINANCIERO',14,46);
+  doc.text('RESUMEN TECNICO-FINANCIERO Y CONTABLE',14,46);
   const rows=[
     ['Potencia neta',fmt(p.p_neta_base,2)+' MW'],
     ['Exergia especifica GNL',fmt(p.ex_spec,1)+' kJ/kg'],
@@ -859,7 +1021,7 @@ function exportPDF() {
     if(i%2===0){doc.setFillColor(248,250,252);doc.rect(12,y-5,184,9,'F');}
   });
   doc.setFontSize(8); doc.setTextColor(148,163,184);
-  doc.text('Modelo: Exergia fisica CH4 | Newton-Raphson IRR | NOL carryforward | Inflacion OPEX | Degradacion activos | Creditos carbono',14,190);
+  doc.text('Modelo: Exergia fisica CH4 | Contabilidad PUC, PGC, SKR04, IFRS 15, IFRS 9',14,190);
   doc.save('PIVTAN-EFP-'+hash+'.pdf');
 }
 
@@ -910,11 +1072,10 @@ function exportXLS() {
 // ================================================================
 // ESTADO GLOBAL Y CALCULO PRINCIPAL
 // ================================================================
-let BP = {};        // base params para MC y escenarios
+let BP = {};        // base params
 let GLOBAL_M = {};  // modelo base
 
 function calculate() {
-  // --- Leer inputs ---
   const flow    = parseFloat(document.getElementById('flow').value);
   const t_lng   = parseFloat(document.getElementById('t_lng').value);
   const t_amb   = parseFloat(document.getElementById('t_amb').value);
@@ -957,7 +1118,7 @@ function calculate() {
   document.getElementById('lsd').innerText = fmt(sto_d*100,0);
   document.querySelectorAll('input[type=range]').forEach(slBg);
 
-  // --- Termodinamica ---
+  // Termodinamica
   const T_lng_K = t_lng + 273.15;
   const T_amb_K = t_amb + 273.15;
   const ex_spec = calcExergia(T_lng_K, T_amb_K);
@@ -967,7 +1128,7 @@ function calculate() {
   const p_frio  = p_neta*2;
   const carnot_r= (eff_real/Math.max(carnotEff(T_lng_K,T_amb_K),0.01))*100;
 
-  // --- Finanzas ---
+  // Finanzas
   const capex     = p_neta*1000*capex_kw;
   const rev_el_base = p_neta*8000*price_base;
   const rev_co_base = p_frio *8000*cold_base;
@@ -984,7 +1145,7 @@ function calculate() {
   GLOBAL_M = M;
   BP.irr_hint = M.irr_eq;
 
-  // ── TAB INGENIERIA ──
+  // TAB INGENIERIA
   ['r-ex','r-mw','r-pf','r-ca'].forEach(animEl);
   document.getElementById('r-ex').innerText  = fmt(ex_spec,1)+' kJ/kg';
   document.getElementById('r-mw').innerText  = fmt(p_neta,2)+' MW';
@@ -1000,7 +1161,7 @@ function calculate() {
   chartExergy(t_lng, t_amb);
   chartCycles(t_lng, t_amb, eta_u);
 
-  // ── TAB FINANCIERO ──
+  // TAB FINANCIERO
   ['r-irr','r-npv','r-pb','r-lcoe'].forEach(animEl);
   document.getElementById('r-irr').innerText  = pct(M.irr_eq);
   document.getElementById('r-npv').innerText  = fmtM(M.npv_eq);
@@ -1031,7 +1192,7 @@ function calculate() {
   chartFCL(M.rows, M.acum_e, M.equity, M.npv_eq>=0);
   chartRevenue(M.rows);
 
-  // ── TAB TOKENIZACION ──
+  // TAB TOKENIZACION
   ['tk-pr','tk-mc','tk-yi','tk-ir','tk-np','tk-dv'].forEach(animEl);
   document.getElementById('tk-pr').innerText = isNaN(M.tok_price)?'N/A':'$'+fmt(M.tok_price,2);
   document.getElementById('tk-mc').innerText = fmtM(M.tok_mcap);
@@ -1051,13 +1212,13 @@ function calculate() {
   document.getElementById('tk-cp').innerText='$'+fmt(cold_base,2)+'/MWh-t';
   chartToken(M.acum_t, M.eq_tok, M.tok_price, M.tok_supply);
 
-  // ── TAB MONTE CARLO - Escenarios deterministicos ──
+  // TAB MONTE CARLO
   const pess=calcScenario(0.75,0.55,1.15), base=calcScenario(1,1,1), opt=calcScenario(1.3,1.5,0.9);
   document.getElementById('s-p-irr').innerText=pct(pess.irr); document.getElementById('s-p-npv').innerText=fmtM(pess.npv); document.getElementById('s-p-pb').innerText=isNaN(pess.pb)?'>20a':fmt(pess.pb,1)+'a';
   document.getElementById('s-b-irr').innerText=pct(base.irr); document.getElementById('s-b-npv').innerText=fmtM(base.npv); document.getElementById('s-b-pb').innerText=isNaN(base.pb)?'>20a':fmt(base.pb,1)+'a';
   document.getElementById('s-o-irr').innerText=pct(opt.irr);  document.getElementById('s-o-npv').innerText=fmtM(opt.npv);  document.getElementById('s-o-pb').innerText=isNaN(opt.pb)?'>20a':fmt(opt.pb,1)+'a';
 
-  // ── TAB CARBON ──
+  // TAB CARBON
   ['cb-y1','cb-t','cb-r'].forEach(animEl);
   document.getElementById('cb-y1').innerText = fmt(r1?.co2_t||0,1)+' tCO2';
   document.getElementById('cb-t').innerText  = fmt(M.total_co2/1000,1)+' ktCO2';
@@ -1066,7 +1227,10 @@ function calculate() {
   drawHeatmap();
   drawTechTable(M.lcoe, capex_kw);
 
-  // ── TAB EXPORTAR ──
+  // TAB CONTABILIDAD MULTI-ESTÁNDAR
+  renderAccountingTables(M, BP);
+
+  // TAB EXPORTAR
   const hash=projHash(BP);
   document.getElementById('sig-hash').innerText=hash;
   document.getElementById('sig-ts').innerText='Generado: '+new Date().toLocaleString('es-CO');
@@ -1088,8 +1252,8 @@ function calculate() {
 // TAB SWITCHING
 // ================================================================
 function ST(name) {
+  const ns=['ing','fin','tok','mc','carb','puc','pgc','skr','ifrs','exp'];
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const ns=['ing','fin','tok','mc','carb','exp'];
     t.classList.toggle('active',ns[i]===name);
   });
   document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('active'));
